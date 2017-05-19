@@ -1,13 +1,28 @@
-import {Action, Observation} from "../util/x";
+import { Model } from './../models/model';
+import {Action, Observation, Reward} from "../util/x";
+import { Util } from "./util";
+import { Environment } from "../environments/environment";
+import { Plot, AverageRewardPlot, IGPlot } from '../vis/plot';
 
 export interface Trace {
 	logState(env: Environment): void
-	
 }
 
 export class BaseTrace implements Trace {
-	states: 
-	constructor(t) {
+	states: 		any[];
+	actions: 		Action[];
+	observations: 	Observation[];
+	rewards: 		Reward[];
+	averageReward: 	Reward[];
+	totalReward: 	Reward;
+	explored: 		number[];
+	models:			Model[];
+
+	plots: Plot[] = [AverageRewardPlot];
+	iter: number;
+	T: number;
+
+	constructor(T) {
 		this.states = [];
 		this.actions = [];
 		this.observations = [];
@@ -15,9 +30,8 @@ export class BaseTrace implements Trace {
 		this.averageReward = [];
 		this.models = [];
 		this.totalReward = 0;
-		this.t = t;
+		this.T = T;
 		this.iter = 0;
-		this.plots = [AverageRewardPlot];
 		this.explored = [];
 	}
 
@@ -50,6 +64,7 @@ export class BaseTrace implements Trace {
 	}
 }
 
+/*
 export class TabularTrace extends BaseTrace {
 	constructor(t) {
 		super(t);
@@ -59,16 +74,21 @@ export class TabularTrace extends BaseTrace {
 
 	logModel(agent) {
 		this.models.push(agent.last_q);
-		if (agent.lifetime % (this.t / this.jumps) == 0) {
+		if (agent.lifetime % (this.T / this.jumps) == 0) {
 			this.q_map.push(agent.Q.copy());
 		}
 	}
 }
+*/
 
 export class BayesTrace extends BaseTrace {
-	constructor(t) {
-		super(t);
-		this.ig = [];
+	infoGain: 			number[];
+	totalInformation: 	number;
+	plans: 				Action[][];
+
+	constructor(T) {
+		super(T);
+		this.infoGain = [];
 		this.totalInformation = 0;
 		this.plots.push(IGPlot);
 		this.plans = [];
@@ -76,13 +96,14 @@ export class BayesTrace extends BaseTrace {
 
 	logModel(agent) {
 		this.totalInformation += agent.informationGain;
-		this.ig.push(this.totalInformation);
+		this.infoGain.push(this.totalInformation);
 		this.models.push(Util.arrayCopy(agent.model.weights));
 		this.plans.push(agent.plan);
 	}
 }
 
 export class ThompsonTrace extends BayesTrace {
+	rhos: any[];
 	constructor(t) {
 		super(t);
 		this.rhos = [];
@@ -91,11 +112,12 @@ export class ThompsonTrace extends BayesTrace {
 	logModel(agent) {
 		super.logModel(agent);
 		let goal = agent.rho.goals[0];
-		this.rhos.push({ x: goal.x, y: goal.y });
+		this.rhos.push({ x: goal.x, y: goal.y }); // TODO: generalize
 	}
 }
 
 class MDLTrace extends ThompsonTrace {
+	mappings: any[];
 	logModel(agent) {
 		super.logModel(agent);
 		if (this.iter == 0) {
@@ -105,6 +127,7 @@ class MDLTrace extends ThompsonTrace {
 }
 
 class DirichletTrace extends BayesTrace {
+	params: any[][];
 	constructor(t) {
 		super(t);
 		this.params = [];
@@ -122,13 +145,14 @@ class DirichletTrace extends BayesTrace {
 }
 
 class BayesExpTrace extends BayesTrace {
+	explorationPhases: boolean[];
 	constructor(t) {
 		super(t);
-		this.exploration_phases = [];
+		this.explorationPhases = [];
 	}
 
 	logModel(agent) {
 		super.logModel(agent);
-		this.exploration_phases.push(agent.explore);
+		this.explorationPhases.push(agent.explore);
 	}
 }

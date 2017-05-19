@@ -3,6 +3,9 @@ import {Model} from "../models/model"
 import {Planner} from "../planners/planner"
 import {ExpectimaxTree} from "../planners/mcts"
 import {BayesTrace} from "../util/trace"
+import {Action, Percept} from "../util/x"
+import {BayesMixture} from "../models/mixture"
+import {GeometricDiscount} from "../util/discount"
 
 class BayesAgent extends SimpleAgent {
 	samples: number;
@@ -14,6 +17,20 @@ class BayesAgent extends SimpleAgent {
 	informationGain: number;
 	model: Model;
 	planner: Planner;
+	plan: Action[];
+	// TODO: this repeats Agent.defaults. is there another way?
+	static defaults = { 
+		cycles: 2e2, 
+		discount: GeometricDiscount,
+		discountParams: {
+			   gamma: 0.99
+		  },
+		horizon: 6,
+		samples: 600,
+		ucb: 1.4,
+		model: BayesMixture,
+		modelParametrization: 'goal'
+	}
 	constructor(options) {
 		super(options);
 		this.samples = options.samples;
@@ -23,40 +40,28 @@ class BayesAgent extends SimpleAgent {
 		this.maxReward = options.maxReward;
 		this.minReward = options.minReward;
 
-		let planCaching = options.plan_caching || true;
-
 		// TODO assert options OK
 		this.informationGain = 0;
 		this.tracer = options.tracer || BayesTrace;
 		this.model = options.model;
-		this.planner = new ExpectimaxTree(this, this.model, !planCaching);
+		this.planner = new ExpectimaxTree(options,this.reward,this.discount);
+		this.lastAction = null;
 	}
 
 	update(a, e) {
 		super.update(a, e);
 		this.model.save();
 		this.model.update(a, e);
-		this.informationGain = Util.entropy(this.model.savedWeights) - Util.entropy(this.model.weights);
+		this.informationGain = this.model.infoGain();
 	}
 
 	selectAction(e) {
-		if (this.informationGain) {
-			this.planner.reset(); // TODO remove :)
-		} else {
-			this.planner.prune(this.last_action, e);
-		}
-
+		this.planner.reset(this.lastAction, e, this.age);
+	
 		let a = this.planner.bestAction();
 		this.plan = this.planner.getPlan();
+		this.lastAction = a;
 
 		return a;
 	}
 }
-
-BayesAgent.params = [
-	{ field: 'horizon', value: 6 },
-	{ field: 'samples', value: 600 },
-	{ field: 'ucb', value: 0.5 },
-	{ field: 'model', value: BayesMixture },
-	{ field: 'modelParametrization', value: 'goal' },
-];

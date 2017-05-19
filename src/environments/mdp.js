@@ -29,7 +29,7 @@ class BasicMDP extends Environment {
 			this.current = this.states[stateIndex];
 			this.reward = old.actions[action].rewards[stateIndex];
 		} else {
-			this.reward = Gridworld.rewards.wall;
+			this.reward = -10; // illegal action
 		}
 	}
 

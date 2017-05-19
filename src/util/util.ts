@@ -1,13 +1,13 @@
 export namespace Util {
 	export function zeros(n) {
-		return new Float64Array(n);
+		return new Float32Array(n);
 	}
 
 	export function randomChoice(arr) {
 		return arr[Math.floor(Math.random() * arr.length)];
 	}
 
-	export function assert(condition, message) {
+	export function assert(condition: any, message?: string) {
 		if (!condition) {
 			message = message || 'Assertion failed';
 			throw new Error(message);
@@ -165,7 +165,7 @@ export namespace Util {
 		return a == b ? 1 : 0;
 	}
 
-	export function gaussRandom(retval, val) {
+	export function gaussRandom(retval?, val?) {
 		if (!val) {
 			val = 0;
 		}

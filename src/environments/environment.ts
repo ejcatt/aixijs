@@ -11,6 +11,7 @@ export interface Environment {
 
 export class BaseEnvironment {
 	reward: number // TODO refactor
+	noop: Action;
 	options: object;
 	plots: object[]; // TODO refactor
 	constructor(options) {

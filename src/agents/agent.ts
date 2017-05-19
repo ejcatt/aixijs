@@ -44,10 +44,10 @@ export class SimpleAgent {
 	}
 
 	reward(e: Percept, dfr: number): Reward {
-		return this.discount(dfr, this.age) * this._utility(e);
+		return this.discount(dfr, this.age) * this.utility(e);
 	}
 
-	_utility(e: Percept): Reward {
+	private utility(e: Percept): Reward {
 		return e.rew;
 	}
 }

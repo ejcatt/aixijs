@@ -9,4 +9,5 @@ export interface Model {
     save(): void;
     load(): void;
     infoGain(): number;
+    entropy(): number;
 }

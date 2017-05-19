@@ -2,7 +2,7 @@ import {Model} from "./model"
 import {Util} from "../util/util"
 import {Action, Percept} from "../util/x"
 
-class BayesMixture implements Model {
+export class BayesMixture implements Model {
 	modelClass: Model[];
 	weights: number[];
 	savedWeights: number[];

@@ -1,4 +1,8 @@
+import * as d3 from 'd3';
+
 class Plot {
+	svg: any;
+
 	constructor(trace, id, labels, key) {
 		this.x_label = labels.x;
 		this.y_label = labels.y;
@@ -21,7 +25,7 @@ class Plot {
 			.attr('height', this.height + this.margin.top + this.margin.bottom)
 			.append('g')
 			.attr('transform', `translate(${this.margin.left},${this.margin.top})`);
-
+		
 		this.x = d3.scaleLinear().range([0, this.width]);
 		this.y = d3.scaleLinear().range([this.height, 0]);
 

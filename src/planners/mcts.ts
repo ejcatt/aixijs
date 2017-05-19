@@ -1,6 +1,7 @@
 import {Model} from "../models/model"
-import {Action, Percept, Reward} from "../util/x"
-import {Util.argmax} from "../util/util"
+import {Action, Percept, Reward, Time} from "../util/x"
+import {Util} from "../util/util"
+import {Discount} from "../util/discount"
 
 export class ExpectimaxTree {
 	model: Model;
@@ -9,23 +10,26 @@ export class ExpectimaxTree {
 	samples: number;
 	timeout: number;
 	totalSamples: number;
-	maxReward: Reward;
-	minReward: Reward;
 	rewRange: Reward;
+	minReward: Reward;
 	numActions: Action;
 	root: DecisionNode;
+	sampled: boolean;
+	private reward: (e: Percept, dfr: number) => Reward;
+	private discount: Discount;
 
-	constructor(agent, model, nocaching) {
-		this.model = model;
-		this.horizon = agent.horizon;
-		this.ucb = agent.ucb;
-		this.maxReward = agent.maxReward;
-		this.minReward = agent.minReward;
-		this.rewRange = this.maxReward - this.minReward;
-		this.numActions = agent.numActions;
-		this.samples = agent.samples;
-		this.timeout = agent.timeout
+	constructor(options, rewardFunction, discountFunction) {
+		this.model = options.model;
+		this.horizon = options.horizon;
+		this.ucb = options.ucb;
+		this.minReward = options.minReward
+		this.rewRange = options.maxReward - options.minReward;
+		this.numActions = options.numActions;
+		this.samples = options.samples;
+		this.timeout = options.timeout;
 		this.totalSamples = 0;
+		this.reward = rewardFunction;
+		this.discount = discountFunction
 
 		this.reset();
 	}
@@ -53,11 +57,11 @@ export class ExpectimaxTree {
 
 			this.sampled = true;
 		}
-
+		// TODO: ???
 		return (this.root.mean / this.horizon - this.minReward) / this.rewRange;
 	}
 
-	bestAction() {
+	bestAction(): Action {
 		this.getValueEstimate();
 
 		return Util.argmax(this.root, (n, a) => {
@@ -66,7 +70,7 @@ export class ExpectimaxTree {
 		}, this.numActions);
 	}
 
-	getPlan() {
+	getPlan(): Action[] {
 		let current = this.root;
 		let ret = [];
 		while (current) {
@@ -97,35 +101,41 @@ export class ExpectimaxTree {
 		return ret;
 	}
 
-	rollout(horizon, dfr) {
+	rollout(horizon: number, dfr: number): Reward {
 		var reward = 0;
 		for (var i = dfr; i <= horizon; i++) {
 			var action = Math.floor(Math.random() * this.numActions);
 			this.model.perform(action);
 			var e = this.model.generatePercept();
 			this.model.bayesUpdate(action, e);
-			reward += this.agent.reward(e, i);
+			reward += this.reward(e, i);
 		}
 
 		return reward;
 	}
 
-	reset() {
-		let agent = this.agent;
-		this.rewRange = agent.discount(0, agent.t) * (agent.maxReward - agent.minReward);
+	private fullReset(): void {
 		this.root = new DecisionNode(null, this);
 		this.sampled = false;
 	}
 
-	prune(a, e) {
+	reset(a?: Action, e?: Percept, t?: number): void {
+		this.rewRange = this.discount(0, t) * (this.rewRange);
+		if (!a) {
+			this.fullReset();
+			return;
+		}
+		
 		let cn = this.root.getChild(a);
 		if (!cn) {
-			return this.reset();
+			this.fullReset();
+			return;
 		}
 
 		this.root = cn.getChild(e, this);
 		if (!this.root) {
-			return this.reset();
+			this.fullReset();
+			return;
 		}
 
 		this.sampled = false;
@@ -133,29 +143,35 @@ export class ExpectimaxTree {
 }
 
 class DecisionNode {
-	constructor(e, tree) {
+	visits: number;
+	mean: number;
+	percept: Percept;
+	children: ChanceNode[];
+	nChildren: number;
+	U: number[];
+	constructor(e, numActions) {
 		this.visits = 0;
 		this.mean = 0;
-		this.e = e;
-		this.children = new Array(tree.numActions);
-		this.n_children = 0;
-		this.U = Util.randInts(tree.numActions);
+		this.percept = e;
+		this.children = new Array(numActions);
+		this.nChildren = 0;
+		this.U = Util.randInts(numActions);
 	}
 
-	addChild(a) {
+	private addChild(a: Action) {
 		this.children[a] = new ChanceNode(a);
 	}
 
-	getChild(a) {
+	getChild(a: Action): ChanceNode {
 		return this.children[a];
 	}
 
-	selectAction(tree, dfr) {
+	private selectAction(tree: ExpectimaxTree, dfr: number): Action {
 		let a;
-		if (this.n_children != tree.numActions) {
-			a = this.U[this.n_children];
+		if (this.nChildren != tree.numActions) {
+			a = this.U[this.nChildren];
 			this.addChild(a);
-			this.n_children++;
+			this.nChildren++;
 		} else {
 			let max = Number.NEGATIVE_INFINITY;
 			for (let action = 0, A = tree.numActions; action < A; action++) {
@@ -173,7 +189,7 @@ class DecisionNode {
 		return a;
 	}
 
-	sample(tree, dfr) {
+	sample(tree: ExpectimaxTree, dfr: number): Reward {
 		let reward = 0;
 		if (dfr > tree.horizon) {
 			return 0;
@@ -191,6 +207,11 @@ class DecisionNode {
 }
 
 class ChanceNode  {
+	visits: number;
+	mean: number;
+	children: Map<Number,DecisionNode>;
+	action: Action;
+
 	constructor(action) {
 		this.visits = 0;
 		this.mean = 0;
@@ -198,7 +219,7 @@ class ChanceNode  {
 		this.action = action;
 	}
 
-	addChild(e, tree) {
+	private addChild(e, tree) {
 		this.children.set(e.obs * tree.rewRange + e.rew, new DecisionNode(e, tree));
 	}
 
