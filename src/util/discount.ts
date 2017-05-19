@@ -1,10 +1,6 @@
-class Discount {
-	constructor() {
-		return _ => 1;
-	}
-}
+export type Discount = (dfr: number, t?: number) => number
 
-class MatrixDiscount {
+export class MatrixDiscount {
 	constructor(params) {
 		let discounts = Util.arrayCopy(params.discounts);
 		let times = Util.arrayCopy(params.discountChanges);
@@ -12,7 +8,7 @@ class MatrixDiscount {
 		let current = discounts[idx];
 		idx++;
 
-		return (dfr, t) => {
+		return (dfr: number, t: number): number => {
 			if (t == times[idx]) {
 				current = discounts[idx];
 				idx++;
@@ -23,38 +19,38 @@ class MatrixDiscount {
 	}
 }
 
-class GeometricDiscount {
+export class GeometricDiscount {
 	constructor(params) {
 		let gamma = params.gamma;
-		return dfr => Math.pow(gamma, dfr);
+		return (dfr: number): number => Math.pow(gamma, dfr);
 	}
 }
 
-class HyperbolicDiscount {
+export class HyperbolicDiscount {
 	constructor(params) {
 		let beta = params.beta;
 		let kappa = params.kappa;
-		return dfr => Math.pow(1 + kappa * dfr, -beta);
+		return (dfr: number): number => Math.pow(1 + kappa * dfr, -beta);
 	}
 }
 
-class PowerDiscount {
+export class PowerDiscount {
 	constructor(params) {
 		let beta = params.beta;
-		return (dfr, t) => Math.pow(dfr + t, -beta);
+		return (dfr: number, t: number): number => Math.pow(dfr + t, -beta);
 	}
 }
 
-class ConstantHorizonDiscount {
+export class ConstantHorizonDiscount {
 	constructor(params) {
 		let horizon = params.horizon;
-		return dfr => dfr < horizon ? 1 : 0;
+		return (dfr: number): number => dfr < horizon ? 1 : 0;
 	}
 }
 
-class CustomDiscount extends Discount {
+export class CustomDiscount {
 	constructor(params) {
 		let vector = Util.arrayCopy(params.vector);
-		return dfr => vector[dfr];
+		return (dfr: number): number => vector[dfr];
 	}
 }

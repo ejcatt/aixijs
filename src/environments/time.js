@@ -10,8 +10,8 @@ class TimeInconsistentEnv extends Environment {
 		this.delayed_reward = 1000;
 		this.instant_reward = 4;
 
-		this.max_reward = this.delayed_reward;
-		this.min_reward = 0;
+		this.maxReward = this.delayed_reward;
+		this.minReward = 0;
 		this.numActions = this.states.length;
 
 		this.actions = new Array(this.states.length);

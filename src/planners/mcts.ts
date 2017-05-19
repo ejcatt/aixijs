@@ -1,22 +1,31 @@
-class ExpectimaxTree {
+import {Model} from "../models/model"
+import {Action, Percept, Reward} from "../util/x"
+import {Util.argmax} from "../util/util"
+
+export class ExpectimaxTree {
+	model: Model;
+	horizon: number;
+	ucb: number;
+	samples: number;
+	timeout: number;
+	totalSamples: number;
+	maxReward: Reward;
+	minReward: Reward;
+	rewRange: Reward;
+	numActions: Action;
+	root: DecisionNode;
+
 	constructor(agent, model, nocaching) {
 		this.model = model;
 		this.horizon = agent.horizon;
 		this.ucb = agent.ucb;
-		this.max_reward = agent.max_reward;
-		this.min_reward = agent.min_reward;
-		this.rew_range = this.max_reward - this.min_reward;
+		this.maxReward = agent.maxReward;
+		this.minReward = agent.minReward;
+		this.rewRange = this.maxReward - this.minReward;
 		this.numActions = agent.numActions;
 		this.samples = agent.samples;
 		this.timeout = agent.timeout
-		if (this.timeout) {
-			this.samples_total = 0
-		}
-		this.gamma = agent.gamma;
-		this.agent = agent; // TODO fix
-		if (nocaching) {
-			this.prune = this.reset;
-		}
+		this.totalSamples = 0;
 
 		this.reset();
 	}
@@ -33,7 +42,7 @@ class ExpectimaxTree {
 					this.model.load();
 					n++
 				}
-				this.samples_total += n
+				this.totalSamples += n
 			} else {
 				// sample budget
 				for (let iter = 0; iter < this.samples; iter++) {
@@ -45,7 +54,7 @@ class ExpectimaxTree {
 			this.sampled = true;
 		}
 
-		return (this.root.mean / this.horizon - this.min_reward) / this.rew_range;
+		return (this.root.mean / this.horizon - this.minReward) / this.rewRange;
 	}
 
 	bestAction() {
@@ -103,7 +112,7 @@ class ExpectimaxTree {
 
 	reset() {
 		let agent = this.agent;
-		this.rew_range = agent.discount(0, agent.t) * (agent.max_reward - agent.min_reward);
+		this.rewRange = agent.discount(0, agent.t) * (agent.maxReward - agent.minReward);
 		this.root = new DecisionNode(null, this);
 		this.sampled = false;
 	}
@@ -151,7 +160,7 @@ class DecisionNode {
 			let max = Number.NEGATIVE_INFINITY;
 			for (let action = 0, A = tree.numActions; action < A; action++) {
 				let child = this.getChild(action);
-				let normalization = (tree.horizon - dfr + 1) * tree.rew_range;
+				let normalization = (tree.horizon - dfr + 1) * tree.rewRange;
 				let value = child.mean / normalization + tree.ucb *
 					Math.sqrt(Math.log2(this.visits) / child.visits);
 				if (value > max) {
@@ -190,11 +199,11 @@ class ChanceNode  {
 	}
 
 	addChild(e, tree) {
-		this.children.set(e.obs * tree.rew_range + e.rew, new DecisionNode(e, tree));
+		this.children.set(e.obs * tree.rewRange + e.rew, new DecisionNode(e, tree));
 	}
 
 	getChild(e, tree) {
-		return this.children.get(e.obs * tree.rew_range + e.rew);
+		return this.children.get(e.obs * tree.rewRange + e.rew);
 	}
 
 	sample(tree, dfr) {

@@ -17,8 +17,8 @@ class BasicMDP extends Environment {
 		this.current = this.states[options._initial_state];
 		this.numStates = this.states.length;
 		this.noop = 0;
-		this.min_reward = 0;
-		this.max_reward = 1000; // TODO FIX
+		this.minReward = 0;
+		this.maxReward = 1000; // TODO FIX
 	}
 
 	perform(action) {

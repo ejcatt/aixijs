@@ -1,20 +1,20 @@
-class Util {
-	static zeros(n) {
+export namespace Util {
+	export function zeros(n) {
 		return new Float64Array(n);
 	}
 
-	static randomChoice(arr) {
+	export function randomChoice(arr) {
 		return arr[Math.floor(Math.random() * arr.length)];
 	}
 
-	static assert(condition, message) {
+	export function assert(condition, message) {
 		if (!condition) {
 			message = message || 'Assertion failed';
 			throw new Error(message);
 		}
 	}
 
-	static sum(arr) {
+	export function sum(arr) {
 		var s = 0;
 		var n = arr.length;
 		for (var i = 0; i < n; i++) {
@@ -24,7 +24,7 @@ class Util {
 		return s;
 	}
 
-	static prod(arr) {
+	export function prod(arr) {
 		let p = 0;
 		let n = arr.length;
 		for (let i = 0; i < n; i++) {
@@ -34,20 +34,20 @@ class Util {
 		return p;
 	}
 
-	static deepCopy(obj) {
+	export function deepCopy(obj) {
 		return jQuery.extend(true, {}, obj);
 	}
 
-	static arrayCopy(arr) {
+	export function arrayCopy(arr) {
 		return jQuery.extend(true, [], arr);
 	}
 
-	static roundTo(x, figs) {
+	export function roundTo(x, figs) {
 		let tmp = Math.pow(10, figs);
 		return Math.round(x * tmp) / tmp;
 	}
 
-	static sample(weights) {
+	export function sample(weights) {
 		var s = Math.random();
 		var p = 0;
 		for (var i = 0; i < weights.length; i++) {
@@ -61,7 +61,7 @@ class Util {
 		return weights.length - 1;
 	}
 
-	static KLDivergence(p, q) {
+	export function KLDivergence(p, q) {
 		Util.assert(p.length == q.length, 'KL: p & q are different lengths');
 		let n = p.length;
 		let sp = Util.sum(p);
@@ -78,7 +78,7 @@ class Util {
 		return s;
 	}
 
-	static entropy(p) {
+	export function entropy(p) {
 		var s = 0;
 		var n = p.length;
 		for (var i = 0; i < n; i++) {
@@ -92,7 +92,7 @@ class Util {
 		return s;
 	}
 
-	static logProgress(t, T) {
+	export function logProgress(t, T) {
 		let prog = (t + 1) / T * 100;
 		if (prog % 10 == 0) {
 			console.clear();
@@ -100,7 +100,7 @@ class Util {
 		}
 	}
 
-	static softMax(lst, j) {
+	export function softMax(lst, j) {
 		let s = 0;
 		lst.forEach(x => {
 			s += Math.pow(Math.E, x);
@@ -108,7 +108,7 @@ class Util {
 		return Math.pow(Math.E, j) / s;
 	}
 
-	static randInts(n) {
+	export function randInts(n) {
 		let arr = new Array(n);
 		for (let i = 0; i < n; i++) {
 			arr[i] = i;
@@ -128,7 +128,7 @@ class Util {
 		return arr;
 	}
 
-	static cumToInc(arr) {
+	export function cumToInc(arr) {
 		let T = arr.length;
 		let inc = new Array(T);
 		inc[0] = 0;
@@ -139,18 +139,18 @@ class Util {
 		return inc;
 	}
 
-	static sigmoid(x) {
+	export function sigmoid(x) {
 		return 1.0 / (1 + Math.exp(-x));
 	}
 
-	static encode(symlist, value, bits) {
+	export function encode(symlist, value, bits) {
 		var tmp = value;
 		for (var i = 0; i < bits; i++, tmp /= 2) {
 			symlist.push(tmp & 1);
 		}
 	}
 
-	static decode(symlist, bits) {
+	export function decode(symlist, bits) {
 		let value = 0;
 		let n = symlist.length;
 		for (let i = 0; i < bits; i++) {
@@ -160,12 +160,12 @@ class Util {
 		return value;
 	}
 
-	static I(a, b) {
+	export function I(a, b) {
 		// indicator fn
 		return a == b ? 1 : 0;
 	}
 
-	static gaussRandom(retval, val) {
+	export function gaussRandom(retval, val) {
 		if (!val) {
 			val = 0;
 		}
@@ -185,19 +185,19 @@ class Util {
 		return u * c;
 	}
 
-	static randi(a, b) {
+	export function randi(a, b) {
 		return Math.floor(Math.random() * (b - a)) + a;
 	}
 
-	static randf(a, b) {
+	export function randf(a, b) {
 		return Math.random() * (b - a) + a;
 	}
 
-	static randn(mu, std) {
+	export function randn(mu, std) {
 		return mu + Util.gaussRandom() * std;
 	}
 
-	static argmax(obj, accessor, numActions) {
+	export function argmax(obj, accessor, numActions) {
 		let max = Number.NEGATIVE_INFINITY;
 		let ties = [];
 		for (let a = 0; a < numActions; a++) {

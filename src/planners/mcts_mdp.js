@@ -5,9 +5,9 @@ class MDPExpectimaxTree {
 		this.model = model;
 		this.horizon = agent.horizon;
 		this.ucb = agent.ucb;
-		this.max_reward = agent.max_reward;
-		this.min_reward = agent.min_reward;
-		this.rew_range = this.max_reward - this.min_reward;
+		this.maxReward = agent.maxReward;
+		this.minReward = agent.minReward;
+		this.rewRange = this.maxReward - this.minReward;
 		this.numActions = agent.numActions;
 		this.samples = agent.samples;
 		this.gamma = agent.gamma;
@@ -36,7 +36,7 @@ class MDPExpectimaxTree {
 			this.sampled = true;
 		}
 
-		return (this.root.mean / this.horizon - this.min_reward) / this.rew_range;
+		return (this.root.mean / this.horizon - this.minReward) / this.rewRange;
 	}
 
 	bestAction() {
@@ -94,7 +94,7 @@ class MDPExpectimaxTree {
 
 	reset() {
 		let agent = this.agent;
-		this.rew_range = agent.discount(0, agent.t) * (agent.max_reward - agent.min_reward);
+		this.rewRange = agent.discount(0, agent.t) * (agent.maxReward - agent.minReward);
 		this.root = new DecisionNode(null, this);
 		this.sampled = false;
 	}
@@ -142,7 +142,7 @@ class DecisionNode {
 			let max = Number.NEGATIVE_INFINITY;
 			for (let action = 0, A = tree.numActions; action < A; action++) {
 				let child = this.getChild(action);
-				let normalization = tree.horizon * tree.rew_range;
+				let normalization = tree.horizon * tree.rewRange;
 				let value = child.mean / normalization + tree.ucb *
 					Math.sqrt(Math.log2(this.visits) / child.visits);
 				if (value > max) {

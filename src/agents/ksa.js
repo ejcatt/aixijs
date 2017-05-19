@@ -1,35 +1,35 @@
 class SquareKSA extends BayesAgent {
 	constructor(options) {
 		super(options);
-		this.min_reward = -1;
-		this.max_reward = 0;
+		this.minReward = -1;
+		this.maxReward = 0;
 	}
 
 	utility(e) {
-		return -1 * this.model.xi(e);
+		return -1 * this.model.conditionalDistribution(e);
 	}
 }
 
 class ShannonKSA extends BayesAgent {
 	constructor(options) {
 		super(options);
-		this.min_reward = 0;
-		this.max_reward = 1000; // TODO fix magic no
+		this.minReward = 0;
+		this.maxReward = 1000; // TODO fix magic no
 	}
 
 	utility(e) {
-		return -1 * Math.log2(this.model.xi(e));
+		return -1 * Math.log2(this.model.conditionalDistribution(e));
 	}
 }
 
 class KullbackLeiblerKSA extends BayesAgent {
 	constructor(options) {
 		super(options);
-		this.max_reward = 0;
-		this.min_reward = this.model.entropy()
+		this.maxReward = 0;
+		this.minReward = this.model.entropy()
 	}
 
 	utility(e) {
-		return this.model.info_gain()
+		return this.model.infoGain()
 	}
 }

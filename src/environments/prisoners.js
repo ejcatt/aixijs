@@ -3,8 +3,8 @@ class IteratedPrisonersDilemma extends Environment {
 		super(options);
 		this.opponent = new options.opponent();
 		this.payouts = options._payouts;
-		this.min_reward = this.payouts[1][0];
-		this.max_reward = this.payouts[0][1];
+		this.minReward = this.payouts[1][0];
+		this.maxReward = this.payouts[0][1];
 		this.actions = ['defect', 'cooperate'];
 		this.numActions = this.actions.length;
 		this.a = 1;

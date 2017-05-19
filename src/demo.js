@@ -65,8 +65,8 @@ const demo = {
 
 		options.agent.model = this.env.makeModel(options.agent.model, options.agent.modelParametrization);
 		options.agent.numActions = this.env.numActions || this.env.actions.length;
-		options.agent.min_reward = this.env.min_reward;
-		options.agent.max_reward = this.env.max_reward;
+		options.agent.minReward = this.env.minReward;
+		options.agent.maxReward = this.env.maxReward;
 
 		options.agent.discountParam = options.agent.discountParam || { gamma: 0.99 };
 

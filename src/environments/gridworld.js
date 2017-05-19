@@ -1,4 +1,6 @@
-class Gridworld extends Environment {
+import {BaseEnvironment} from "environment";
+
+class Gridworld extends BaseEnvironment {
 	constructor(options) {
 		super(options);
 		if (!options.randomized) {
@@ -20,8 +22,8 @@ class Gridworld extends Environment {
 		this.visits = 0;
 		this.state_percepts = options.state_percepts
 
-		this.min_reward = Gridworld.rewards.wall + Gridworld.rewards.move;
-		this.max_reward = Gridworld.rewards.chocolate + Gridworld.rewards.move;
+		this.minReward = Gridworld.rewards.wall + Gridworld.rewards.move;
+		this.maxReward = Gridworld.rewards.chocolate + Gridworld.rewards.move;
 
 		for (let i = 0; i < this.N; i++) {
 			this.grid[i] = new Array(this.N);

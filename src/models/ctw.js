@@ -7,7 +7,7 @@ class CTW {
 		this.perceptBits = this.obsBits + this.rewBits;
 		this.cycle = 0;
 		this.weights = Util.zeros(1);
-		this.saved_weights = [...this.weights];
+		this.savedWeights = [...this.weights];
 
 		this.ct = new ContextTree(this.depth);
 	}

@@ -1,4 +1,12 @@
-class Trace {
+import {Action, Observation} from "../util/x";
+
+export interface Trace {
+	logState(env: Environment): void
+	
+}
+
+export class BaseTrace implements Trace {
+	states: 
 	constructor(t) {
 		this.states = [];
 		this.actions = [];
@@ -42,7 +50,7 @@ class Trace {
 	}
 }
 
-class TabularTrace extends Trace {
+export class TabularTrace extends BaseTrace {
 	constructor(t) {
 		super(t);
 		this.q_map = [];
@@ -57,7 +65,7 @@ class TabularTrace extends Trace {
 	}
 }
 
-class BayesTrace extends Trace {
+export class BayesTrace extends BaseTrace {
 	constructor(t) {
 		super(t);
 		this.ig = [];
@@ -67,14 +75,14 @@ class BayesTrace extends Trace {
 	}
 
 	logModel(agent) {
-		this.totalInformation += agent.information_gain;
+		this.totalInformation += agent.informationGain;
 		this.ig.push(this.totalInformation);
 		this.models.push(Util.arrayCopy(agent.model.weights));
 		this.plans.push(agent.plan);
 	}
 }
 
-class ThompsonTrace extends BayesTrace {
+export class ThompsonTrace extends BayesTrace {
 	constructor(t) {
 		super(t);
 		this.rhos = [];

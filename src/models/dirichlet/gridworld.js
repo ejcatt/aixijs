@@ -33,7 +33,7 @@ class DirichletGrid {
 			this.weights[i] = this.grid[0][0].prob(1); // Haldane prior
 		}
 
-		this.saved_weights = [...this.weights];
+		this.savedWeights = [...this.weights];
 
 		this.wall = new Wall(0, 0);
 		this.wall.prob = i => Util.I(i, 2);
@@ -74,7 +74,7 @@ class DirichletGrid {
 		return this.e;
 	}
 
-	xi(e) {
+	conditionalDistribution(e) {
 		var o = e.obs;
 		var r = e.rew;
 		var oBits = [];
@@ -211,7 +211,7 @@ class DirichletGrid {
 		this.bayesUpdate(a, e);
 	}
 
-	info_gain() {
+	infoGain() {
 		var stack = []
 		var s = this.pos;
 		var ne = s.neighbors;
@@ -223,7 +223,7 @@ class DirichletGrid {
 			var idx = this.weight_queue.pop_back()
 			stack.push(idx)
 			var p_ = this.weights[idx]
-			var p = this.saved_weights[idx]
+			var p = this.savedWeights[idx]
 			if (p != 0 && p_ != 0) {
 				ig += p_ * Math.log(p_) - p * Math.log(p)
 			}
@@ -250,7 +250,7 @@ class DirichletGrid {
 		}
 
 		this.saved_pos = { x: this.pos.x, y: this.pos.y };
-		this.saved_weights = [...this.weights];
+		this.savedWeights = [...this.weights];
 	}
 
 	load() {
@@ -267,7 +267,7 @@ class DirichletGrid {
 
 		while (!this.weight_queue.isempty()) {
 			var idx = this.weight_queue.remove()
-			this.weights[idx] = this.saved_weights[idx]
+			this.weights[idx] = this.savedWeights[idx]
 		}
 	}
 }

@@ -26,7 +26,7 @@ class BayesExp extends BayesAgent {
 
 	update(a, e) {
 		this.bayesAgent.update(a, e);
-		this.information_gain = this.bayesAgent.information_gain;
+		this.informationGain = this.bayesAgent.informationGain;
 	}
 }
 

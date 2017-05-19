@@ -13,18 +13,18 @@ class MDP extends Environment {
 		this.transitions = options.transitions;
 		this.rewards = options.rewards;
 
-		this.min_reward = Number.POSITIVE_INFINITY;
-		this.max_reward = Number.NEGATIVE_INFINITY;
+		this.minReward = Number.POSITIVE_INFINITY;
+		this.maxReward = Number.NEGATIVE_INFINITY;
 
 		let R = this.rewards;
 		for (let s = 0; s < this.numStates; s++) {
 			for (let a = 0; a < this.numActions; a++) {
-				if (R[s][a] < this.min_reward) {
-					this.min_reward = R[s][a];
+				if (R[s][a] < this.minReward) {
+					this.minReward = R[s][a];
 				}
 
-				if (R[s][a] > this.max_reward) {
-					this.max_reward = R[s][a];
+				if (R[s][a] > this.maxReward) {
+					this.maxReward = R[s][a];
 				}
 			}
 		}
