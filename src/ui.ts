@@ -1,27 +1,30 @@
-class UI {
+export class UI {
+	doc: HTMLDocument;
+	params: any;
 	constructor() {
 		this.doc = document;
 		this.params = {};
 	}
 
-	getElementById(id) {
+	getElementById(id: string) {
 		return this.doc.getElementById(id);
 	}
 
-	getElementsByClassName(cl) {
+	getElementsByClassName(cl: string) {
 		return this.doc.getElementsByClassName(cl);
 	}
 
-	showExplanation(exp) {
-		let md = this.doc.getElementById(`${exp}_exp`);
-		try {
+	showExplanation(exp: string) {
+		let md: HTMLElement | null = this.doc.getElementById(`${exp}_exp`);
+		if (md) {
 			md.style.display = 'block';
-		} catch (e) {}
+		}
 	}
 
 	clearExplanations() {
-		let mds = this.getElementsByClassName('md');
-		for (let md of mds) {
+		let mds = <HTMLCollectionOf<HTMLDivElement>>this.getElementsByClassName('md');
+		for (let i = 0; i < mds.length; i++) {
+			let md = mds[i]
 			if (md.id.endsWith('_exp')) {
 				md.style.display = 'none';
 			}
@@ -224,12 +227,12 @@ class UI {
 		this.show('back');
 	}
 
-	show(x) {
-		this.getElementById(x).style.display = 'block';
+	show(x: string) {
+		this.getElementById(x)!.style.display = 'block';
 	}
 
-	hide(x) {
-		this.getElementById(x).style.display = 'none';
+	hide(x: string) {
+		this.getElementById(x)!.style.display = 'none';
 	}
 
 	static init() {

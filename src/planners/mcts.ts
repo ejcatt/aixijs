@@ -1,7 +1,7 @@
-import {Model} from "../models/model"
-import {Action, Percept, Reward, Time} from "../util/x"
-import {Util} from "../util/util"
-import {Discount} from "../util/discount"
+import { Model } from '../models/model';
+import { Action, Percept, Reward, Time } from '../x/x';
+import { Util } from '../x/util';
+import { Discount } from '../x/discount';
 
 export class ExpectimaxTree {
 	model: Model;
@@ -15,21 +15,23 @@ export class ExpectimaxTree {
 	numActions: Action;
 	root: DecisionNode;
 	sampled: boolean;
-	private reward: (e: Percept, dfr: number) => Reward;
-	private discount: Discount;
+	reward: (e: Percept, dfr: number) => Reward;
+	discount: Discount;
 
-	constructor(options, rewardFunction, discountFunction) {
+	constructor(options: any,
+		rewardFunction: (e: Percept, dfr: number) => Reward,
+		discountFunction: (dfr: Time, t: Time) => number) {
 		this.model = options.model;
 		this.horizon = options.horizon;
 		this.ucb = options.ucb;
-		this.minReward = options.minReward
+		this.minReward = options.minReward;
 		this.rewRange = options.maxReward - options.minReward;
 		this.numActions = options.numActions;
 		this.samples = options.samples;
 		this.timeout = options.timeout;
 		this.totalSamples = 0;
 		this.reward = rewardFunction;
-		this.discount = discountFunction
+		this.discount = discountFunction;
 
 		this.reset();
 	}
@@ -39,14 +41,14 @@ export class ExpectimaxTree {
 			this.model.save();
 			if (this.timeout) {
 				// time budget
-				var t0 = performance.now()
-				var n = 0
+				var t0 = performance.now();
+				var n = 0;
 				while (performance.now() - t0 < this.timeout) {
-					this.root.sample(this,0);
+					this.root.sample(this, 0);
 					this.model.load();
-					n++
+					n++;
 				}
-				this.totalSamples += n
+				this.totalSamples += n;
 			} else {
 				// sample budget
 				for (let iter = 0; iter < this.samples; iter++) {
@@ -90,12 +92,12 @@ export class ExpectimaxTree {
 			let maxVisits = 0;
 			for (let [key, val] of chanceNode.children) {
 				if (val.visits > maxVisits) {
-					child = val; //No tie-breaking for now
+					child = val; // No tie-breaking for now
 					maxVisits = val.visits;
 				}
 			}
 
-			current = child;
+			current = child!;
 		}
 
 		return ret;
@@ -115,7 +117,7 @@ export class ExpectimaxTree {
 	}
 
 	private fullReset(): void {
-		this.root = new DecisionNode(null, this);
+		this.root = new DecisionNode(null, this.numActions);
 		this.sampled = false;
 	}
 
@@ -125,14 +127,14 @@ export class ExpectimaxTree {
 			this.fullReset();
 			return;
 		}
-		
+
 		let cn = this.root.getChild(a);
 		if (!cn) {
 			this.fullReset();
 			return;
 		}
 
-		this.root = cn.getChild(e, this);
+		this.root = cn.getChild(e!, this)!;
 		if (!this.root) {
 			this.fullReset();
 			return;
@@ -145,11 +147,11 @@ export class ExpectimaxTree {
 class DecisionNode {
 	visits: number;
 	mean: number;
-	percept: Percept;
+	percept: Percept | null;
 	children: ChanceNode[];
 	nChildren: number;
 	U: number[];
-	constructor(e, numActions) {
+	constructor(e: Percept | null, numActions: Action) {
 		this.visits = 0;
 		this.mean = 0;
 		this.percept = e;
@@ -185,8 +187,9 @@ class DecisionNode {
 				}
 			}
 		}
+		Util.assert(a != null);
 
-		return a;
+		return a!;
 	}
 
 	sample(tree: ExpectimaxTree, dfr: number): Reward {
@@ -206,28 +209,29 @@ class DecisionNode {
 	}
 }
 
-class ChanceNode  {
+class ChanceNode {
 	visits: number;
 	mean: number;
-	children: Map<Number,DecisionNode>;
+	children: Map<Number, DecisionNode>;
 	action: Action;
 
-	constructor(action) {
+	constructor(action: Action) {
 		this.visits = 0;
 		this.mean = 0;
 		this.children = new Map();
 		this.action = action;
 	}
 
-	private addChild(e, tree) {
-		this.children.set(e.obs * tree.rewRange + e.rew, new DecisionNode(e, tree));
+	private addChild(e: Percept, tree: ExpectimaxTree) {
+		this.children.set(e.obs * tree.rewRange + e.rew,
+			new DecisionNode(e, tree.numActions));
 	}
 
-	getChild(e, tree) {
+	getChild(e: Percept, tree: ExpectimaxTree) {
 		return this.children.get(e.obs * tree.rewRange + e.rew);
 	}
 
-	sample(tree, dfr) {
+	sample(tree: ExpectimaxTree, dfr: Time) {
 		let reward = 0;
 		if (dfr > tree.horizon) {
 			return reward;
@@ -239,7 +243,8 @@ class ChanceNode  {
 				this.addChild(e, tree);
 			}
 
-			reward = tree.agent.reward(e, dfr) + this.getChild(e, tree).sample(tree, dfr + 1);
+			reward = tree.reward(e, dfr) +
+				this.getChild(e, tree)!.sample(tree, dfr + 1);
 		}
 
 		this.mean = (1 / (this.visits + 1)) * (reward + this.visits * this.mean);

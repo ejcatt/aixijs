@@ -1,36 +1,37 @@
-import {Trace, BaseTrace} from "../util/trace";
-import {Discount, GeometricDiscount} from "../util/discount";
-import {Action, Reward, Percept} from "../util/x"
-import {Util} from "../util/util";
+import { Trace } from '../x/trace';
+import { Discount, GeometricDiscount } from '../x/discount';
+import { Action, Reward, Percept, Time } from '../x/x';
+import { Util } from '../x/util';
 
 export interface Agent {
 	selectAction(e: Percept): Action;
-	update(a: Action, e: Percept);
+	update(a: Action, e: Percept): void;
 	reward(e: Percept, dfr: number): Reward;
+	getState(): any;
 }
 
 export class SimpleAgent {
 	numActions: Action;
-	tracer: Trace;
+	tracer: new (T: Time) => Trace;
 	discount: Discount;
 	options: any;
 	age: number;
 	lastAction: Action;
-	static defaults = { 
-		  cycles: 2e2, 
-		  discount: GeometricDiscount,
-		  discountParams: {
-			   gamma: 0.99
-		  }
-		};
+	static defaults = {
+		cycles: 2e2,
+		discount: GeometricDiscount,
+		discountParams: {
+			gamma: 0.99
+		}
+	};
 
 
-	constructor(options) {
+	constructor(options: any) {
 		this.numActions = options.numActions;
-		this.tracer = BaseTrace;
+		this.tracer = Trace;
 		this.age = 0;
 		this.discount = new options.discount(options.discountParam);
-		this.lastAction = null;
+		this.lastAction = 0;
 		this.options = Util.deepCopy(options);
 	}
 
@@ -47,7 +48,7 @@ export class SimpleAgent {
 		return this.discount(dfr, this.age) * this.utility(e);
 	}
 
-	private utility(e: Percept): Reward {
+	protected utility(e: Percept): Reward {
 		return e.rew;
 	}
 }

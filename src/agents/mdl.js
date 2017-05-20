@@ -1,4 +1,8 @@
-class MDLAgent extends BayesAgent {
+import { BayesAgent } from './bayes';
+import { MDLTrace } from '../x/trace';
+import { ExpectimaxTree } from '../planners/mcts';
+
+export class MDLAgent extends BayesAgent {
 	constructor(options) {
 		super(options);
 		this.tracer = MDLTrace;
@@ -23,7 +27,7 @@ class MDLAgent extends BayesAgent {
 		this.model.weights = w;
 		this.idx = 0;
 		this.rho = this.model.modelClass[this.idx].copy();
-		this.rho.bayesUpdate = function () {};
+		this.rho.bayesUpdate = function () { };
 
 		this.planner = new ExpectimaxTree(this, this.rho);
 
@@ -44,7 +48,7 @@ class MDLAgent extends BayesAgent {
 		for (; this.idx < this.model.modelClass.length; this.idx++) {
 			if (this.model.weights[this.idx] != 0) {
 				this.rho = this.model.modelClass[this.idx].copy();
-				this.rho.bayesUpdate = function () {};
+				this.rho.bayesUpdate = function () { };
 
 				this.rho.idx = this.idx;
 

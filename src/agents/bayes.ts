@@ -1,13 +1,13 @@
-import {SimpleAgent} from "./agent";
-import {Model} from "../models/model"
-import {Planner} from "../planners/planner"
-import {ExpectimaxTree} from "../planners/mcts"
-import {BayesTrace} from "../util/trace"
-import {Action, Percept} from "../util/x"
-import {BayesMixture} from "../models/mixture"
-import {GeometricDiscount} from "../util/discount"
+import { SimpleAgent } from './agent';
+import { Model } from '../models/model';
+import { Planner } from '../planners/planner';
+import { ExpectimaxTree } from '../planners/mcts';
+import { BayesTrace } from '../x/trace';
+import { Action, Percept } from '../x/x';
+import { BayesMixture } from '../models/mixture';
+import { GeometricDiscount } from '../x/discount';
 
-class BayesAgent extends SimpleAgent {
+export class BayesAgent extends SimpleAgent {
 	samples: number;
 	timeout: number;
 	horizon: number;
@@ -19,19 +19,19 @@ class BayesAgent extends SimpleAgent {
 	planner: Planner;
 	plan: Action[];
 	// TODO: this repeats Agent.defaults. is there another way?
-	static defaults = { 
-		cycles: 2e2, 
+	static defaults = {
+		cycles: 2e2,
 		discount: GeometricDiscount,
 		discountParams: {
-			   gamma: 0.99
-		  },
+			gamma: 0.99
+		},
 		horizon: 6,
 		samples: 600,
 		ucb: 1.4,
 		model: BayesMixture,
 		modelParametrization: 'goal'
-	}
-	constructor(options) {
+	};
+	constructor(options: any) {
 		super(options);
 		this.samples = options.samples;
 		this.timeout = options.timeout;
@@ -44,20 +44,20 @@ class BayesAgent extends SimpleAgent {
 		this.informationGain = 0;
 		this.tracer = options.tracer || BayesTrace;
 		this.model = options.model;
-		this.planner = new ExpectimaxTree(options,this.reward,this.discount);
-		this.lastAction = null;
+		this.planner = new ExpectimaxTree(options, this.reward, this.discount);
+		this.lastAction = 0;
 	}
 
-	update(a, e) {
+	update(a: Action, e: Percept) {
 		super.update(a, e);
 		this.model.save();
 		this.model.update(a, e);
 		this.informationGain = this.model.infoGain();
 	}
 
-	selectAction(e) {
+	selectAction(e: Percept) {
 		this.planner.reset(this.lastAction, e, this.age);
-	
+
 		let a = this.planner.bestAction();
 		this.plan = this.planner.getPlan();
 		this.lastAction = a;

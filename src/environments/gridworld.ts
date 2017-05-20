@@ -1,24 +1,23 @@
-import { Gridworld } from './gridworld';
-import { BaseEnvironment } from './environment';
-import { Util } from '../util/util';
-import { Action, Reward, Observation, Percept } from '../util/x';
+import { Environment } from './environment';
+import { Util } from '../x/util';
+import { Action, Reward, Observation, Percept } from '../x/x';
 import { ExplorationPlot } from '../vis/plot';
 import { Model } from '../models/model';
 
 enum REWARDS {
-	chocolate 	= 100,
-	wall 		= -5,
-	empty 		= 0,
-	move 		= -1,
-};
+	chocolate = 100,
+	wall = -5,
+	empty = 0,
+	move = -1,
+}
 
 const MAPSYMBOLS = {
-	empty		: "F",
-	chocolate	: 'C',
-	wall 		: 'W',
-	dispenser 	: 'D',
-	trap 		: 'T',
-	modifier 	: 'M',
+	empty: 'F',
+	chocolate: 'C',
+	wall: 'W',
+	dispenser: 'D',
+	trap: 'T',
+	modifier: 'M',
 };
 
 const ACTIONS = [
@@ -29,28 +28,36 @@ const ACTIONS = [
 	[0, 0], 	// noop
 ];
 
-interface saved {
-	x: 		number;
-	y: 		number;
+interface Saved {
+	x: number;
+	y: number;
 	reward: Reward;
 }
 
-export class Gridworld extends BaseEnvironment {
-	obsBits: 				number;
-	grid: 					Tile[][];
-	N: 						number;
-	actions: 				any[];
-	numActions: 			Action;
-	minReward:				Reward;
-	maxReward:				Reward;
+export class Gridworld implements Environment {
+	obsBits: number;
+	grid: Tile[][];
+	N: number;
+	actions: any[];
+	numStates: number;
+	numActions: Action;
+	minReward: Reward;
+	maxReward: Reward;
+	reward: Reward;
+	options: any;
+	plots: object[];
 
-	explored: 				number = 0;
-	statePercepts: 			boolean = false;
-	wallHit: 				boolean = false;
+	noop: Action;
 
-	protected state: 		Tile;
-	protected savedState: 	saved;
-	protected goals: 		Tile[];
+	visited: number = 0;
+	explored: number = 0;
+
+	statePercepts: boolean = false;
+	wallHit: boolean = false;
+
+	protected state: Tile;
+	protected savedState: Saved;
+	protected goals: Tile[];
 
 	static defaults = { // TODO: static members necessary?
 		N: 10,
@@ -59,8 +66,8 @@ export class Gridworld extends BaseEnvironment {
 		},
 	};
 
-	constructor(options) {
-		super(options);
+	constructor(options: any) {
+		this.options = Util.deepCopy(options);
 		if (!options.randomized) {
 			options.randomized = true;
 			return Gridworld.generateRandom(this.constructor, options);
@@ -78,7 +85,7 @@ export class Gridworld extends BaseEnvironment {
 		this.numActions = this.actions.length;
 		this.reward = -1; // TODO: "fix name conflict" (?)
 		this.noop = 4;
-		this.statePercepts = options.statePercepts
+		this.statePercepts = options.statePercepts;
 
 		this.minReward = REWARDS.wall + REWARDS.move;
 		this.maxReward = REWARDS.chocolate + REWARDS.move;
@@ -145,7 +152,7 @@ export class Gridworld extends BaseEnvironment {
 	}
 
 	isSolvable() {
-		let queue = [];
+		let queue: Array<Tile> = [];
 		let state = 0;
 
 		let maxFreq = 0;
@@ -173,7 +180,7 @@ export class Gridworld extends BaseEnvironment {
 				}
 
 				this.numStates++;
-				if ((t.constructor == Dispenser && t.theta == maxFreq) || t.constructor == Chocolate) {
+				if (t.constructor == Dispenser && t.theta == maxFreq) {
 					solvable = true;
 				}
 
@@ -251,13 +258,13 @@ export class Gridworld extends BaseEnvironment {
 			return new DirichletGrid(this.options.N);
 		}
 
-		var modelClass:Model[] = [];
+		var modelClass: Model[] = [];
 		var modelWeights = [];
 		let options = Util.deepCopy(this.options);
 
 		if (parametrization == 'mu') {
 			modelClass.push(new this.constructor(options));
-			modelWeights = [1]
+			modelWeights = [1];
 		} else if (parametrization == 'maze') {
 			options.randomized = false;
 			for (let n = 4; n < this.N; n++) {
@@ -271,7 +278,7 @@ export class Gridworld extends BaseEnvironment {
 			modelClass.push(new this.constructor(this.options));
 			modelWeights.push(1);
 		} else {
-			let C = options.N**2;
+			let C = options.N ** 2;
 			for (let i = 0; i < options.N; i++) {
 				for (let j = 0; j < options.N; j++) {
 					if (parametrization == 'goal') {
@@ -396,7 +403,7 @@ export class Gridworld extends BaseEnvironment {
 	}
 
 	static newTile(i, j, info, type) {
-		let tile:Tile = null;
+		let tile: Tile = null;
 		if (type == MAPSYMBOLS.empty) {
 			tile = new Tile(i, j);
 		} else if (type == MAPSYMBOLS.wall) {
@@ -475,20 +482,20 @@ class EpisodicGrid extends Gridworld {
 	}
 }
 
-class Tile {
-	x: 			number;
-	y: 			number;
-	legal: 		boolean;
+export class Tile {
+	x: number;
+	y: number;
+	legal: boolean;
 	connexions: Tile[];
-	symbol: 	number = 0;
-	obs: 		Observation;
+	symbol: number = 0;
+	obs: Observation;
 
-	dynamics: 	() => void;
-	reward: 	() => Reward;
+	dynamics: () => void;
+	reward: () => Reward;
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
-		this.reward = () =>  REWARDS.empty;
+		this.reward = () => REWARDS.empty;
 
 		this.legal = true;
 		this.obs = null; // gets filled out on construction
@@ -501,7 +508,7 @@ function isWall(x: Tile): x is Wall {
 	return !x.legal;
 }
 
-class Wall extends Tile {
+export class Wall extends Tile {
 	constructor(x: number, y: number) {
 		super(x, y);
 		this.reward = () => REWARDS.wall;
@@ -510,8 +517,8 @@ class Wall extends Tile {
 	}
 }
 
-class Dispenser extends Tile {
-	theta: number; 
+export class Dispenser extends Tile {
+	theta: number;
 	constructor(x: number, y: number, theta: number) {
 		super(x, y);
 		this.theta = theta;
@@ -521,20 +528,20 @@ class Dispenser extends Tile {
 	}
 }
 
-class Trap extends Tile {
+export class Trap extends Tile {
 	constructor(x: number, y: number) {
 		super(x, y);
-		this.reward =  () => REWARDS.wall;
+		this.reward = () => REWARDS.wall;
 	}
 }
 
-class SelfModificationTile extends Tile {
+export class SelfModificationTile extends Tile {
 	constructor(x: number, y: number) {
 		super(x, y);
 	}
 }
 
-class NoiseTile extends Tile {
+export class NoiseTile extends Tile {
 	numObs: number;
 	constructor(x: number, y: number) {
 		super(x, y);

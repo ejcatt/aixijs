@@ -1,33 +1,37 @@
-import { Trace } from '../util/trace';
+import { Trace } from '../x/trace';
 import * as d3 from 'd3';
-import { Util } from '../util/util';
+import { Util } from '../x/util';
 
 export class Plot {
-	xLabel: 			string;
-	yLabel: 			string;
-	key: 				string;
-	data: 				any[];
-	id: 				string;
+	xLabel: string;
+	yLabel: string;
+	key: string;
+	data: any[];
+	id: string;
 
-	private margin: 	any;
-	private width: 		number;
-	private height: 	number;
-	private min:		number;
-	private max:		number;
-	
-	private x: 			d3.ScaleLinear<number, number>;
-	private y: 			d3.ScaleLinear<number, number>;
-	private xAxis:  	d3.Axis<any>;
-	private yAxis: 		d3.Axis<any>;
-	private svg: 		d3.Selection<any, {}, HTMLElement, any>;
+	private margin: any;
+	private width: number;
+	private height: number;
+	private min: number;
+	private max: number;
+
+	private xAxis: d3.Axis<any>;
+	private yAxis: d3.Axis<any>;
 	private yAxisLabel: d3.Selection<any, {}, HTMLElement, any>;
 
-	private valueline:	d3.Line<[number, number]>;
-	private path:		d3.Selection<d3.BaseType, {}, HTMLElement, any>;
+	private valueline: d3.Line<[number, number]>;
+	private path: d3.Selection<d3.BaseType, {}, HTMLElement, any>;
 
-	constructor(trace: Trace, id: string, key: string, yLabel: string,
-				xLabel='Cycles') {
-		
+	protected x: d3.ScaleLinear<number, number>;
+	protected y: d3.ScaleLinear<number, number>;
+	protected svg: d3.Selection<any, {}, HTMLElement, any>;
+
+	constructor(trace: Trace,
+		id: string,
+		key: string,
+		yLabel: string,
+		xLabel = 'Cycles') {
+
 		this.id = id;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
@@ -49,7 +53,7 @@ export class Plot {
 			.attr('height', this.height + this.margin.top + this.margin.bottom)
 			.append('g')
 			.attr('transform', `translate(${this.margin.left},${this.margin.top})`);
-		
+
 		this.x = d3.scaleLinear().range([0, this.width]);
 		this.y = d3.scaleLinear().range([this.height, 0]);
 
@@ -137,10 +141,16 @@ export class Plot {
 }
 
 class TooltipPlot extends Plot {
-	private tooltip: 		d3.Selection<any, {}, HTMLElement, any>;
-	private tooltipLabel: 	string;
-	constructor(data, id, labels, key) {
-		super(data, id, labels, key);
+	private tooltip: d3.Selection<any, {}, HTMLElement, any>;
+	private label: string;
+	constructor(trace: Trace,
+		id: string,
+		key: string,
+		yLabel: string,
+		tooltipLabel: string,
+		xLabel = 'Cycles') {
+		super(trace, id, key, yLabel, xLabel);
+		this.label = tooltipLabel;
 		this.tooltip = this.svg.append('g').style('display', 'none');
 
 		this.tooltip.append('circle')
@@ -156,9 +166,11 @@ class TooltipPlot extends Plot {
 			.style('opacity', 0.8)
 			.attr('dx', 8)
 			.attr('dy', '-.3em');
+
 		this.tooltip.append('text')
 			.attr('class', 'y2')
 			.attr('dx', 8)
+
 			.attr('dy', '-.3em');
 		this.tooltip.append('text')
 			.attr('class', 'y3')
@@ -167,6 +179,7 @@ class TooltipPlot extends Plot {
 			.style('opacity', 0.8)
 			.attr('dx', 8)
 			.attr('dy', '1em');
+
 		this.tooltip.append('text')
 			.attr('class', 'y4')
 			.attr('dx', 8)
@@ -183,7 +196,7 @@ class TooltipPlot extends Plot {
 		for (let i = 1; i < 5; i++) {
 			let text = 't: ' + (time + 1);
 			if (i == 2) {
-				text = this.value + ': ' + y;
+				text = this.label + ': ' + y;
 			}
 
 			this.tooltip.select('text.y' + i)
@@ -196,28 +209,40 @@ class TooltipPlot extends Plot {
 
 export class ExplorationPlot extends TooltipPlot {
 	constructor(trace: Trace) {
-		super(trace, 'exp',
-			{ x: 'Cycles', y: '% explored', value: 'exp' }, 'explored');
+		super(trace,
+			'exp',
+			'explored',
+			'% explored',
+			'expl');
 	}
 }
 
 export class AverageRewardPlot extends TooltipPlot {
 	constructor(trace: Trace) {
-		super(trace, 'rew',
-			{ x: 'Cycles', y: 'Reward per Cycle', value: 'rew' }, 'averageReward');
+		super(trace,
+			'rew',
+			'averageReward',
+			'Reward per Cycle',
+			'r');
 	}
 }
 
 export class TotalRewardPlot extends TooltipPlot {
 	constructor(trace: Trace) {
-		super(trace, 'rew',
-			{ x: 'Cycles', y: 'Reward', value: 'rew' }, 'rewards');
+		super(trace,
+			'rew',
+			'rewards',
+			'Reward',
+			'r');
 	}
 }
 
 export class IGPlot extends TooltipPlot {
 	constructor(trace: Trace) {
-		super(trace, 'ig',
-			{ x: 'Cycles', y: 'Information gain', value: 'IG' }, 'ig');
+		super(trace,
+			'ig',
+			'ig',
+			'Information Gain',
+			'ig');
 	}
 }
