@@ -3,7 +3,7 @@ const glossary = {
 		label: 'N',
 		description: 'Dimensions of gridworld',
 	},
-	freq: {
+	theta: {
 		label: 'Theta',
 		description: 'Frequency that the dispenser dispenses rewards',
 	},
@@ -257,7 +257,7 @@ const configs = {
 		},
 		env: {
 			type: Gridworld,
-			goals: [{ freq: 1 }],
+			goals: [{ theta: 1 }],
 		},
 	},
 	bayesexp: {

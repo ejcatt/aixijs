@@ -14,7 +14,7 @@ export class BaseEnvironment {
 	noop: Action;
 	options: object;
 	plots: object[]; // TODO refactor
-	constructor(options) {
+	constructor(options: any) {
 		this.reward = 0;
 		this.options = Util.deepCopy(options);
 		this.plots = [];

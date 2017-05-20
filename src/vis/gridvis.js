@@ -72,7 +72,7 @@ class GridVisualization extends Visualization {
 			r.attr('fill', t.color);
 		} else {
 			r.attr('fill', GridVisualization.colors.empty);
-			GridVisualization.addCircle(svg, t.x, t.y, t.color, '', t.freq,gv);
+			GridVisualization.addCircle(svg, t.x, t.y, t.color, '', t.theta,gv);
 		}
 
 		if (color) {

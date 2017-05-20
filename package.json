@@ -1,0 +1,24 @@
+{
+  "name": "demo-tsc",
+  "version": "1.0.0",
+  "description": "AIXIjs is a JavaScript demo for running General Reinforcement Learning (RL) agents in the browser. In particular, it provides a general and extensible framework for running experiments on Bayesian RL agents in general (partially observable, non-Markov, non-ergodic) environments.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aslanides/aixijs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aslanides/aixijs/issues"
+  },
+  "homepage": "https://github.com/aslanides/aixijs#readme",
+  "dependencies": {
+    "@types/d3": "^4.9.0",
+    "d3": "^4.9.1"
+  }
+}

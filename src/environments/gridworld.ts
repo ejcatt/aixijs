@@ -1,3 +1,4 @@
+import { Gridworld } from './gridworld';
 import { BaseEnvironment } from './environment';
 import { Util } from '../util/util';
 import { Action, Reward, Observation, Percept } from '../util/x';
@@ -54,7 +55,7 @@ export class Gridworld extends BaseEnvironment {
 	static defaults = { // TODO: static members necessary?
 		N: 10,
 		goals: {
-			freq: 0.75,
+			theta: 0.75,
 		},
 	};
 
@@ -70,9 +71,9 @@ export class Gridworld extends BaseEnvironment {
 		this.grid = [];
 		this.N = options.N;
 		this.savedState = {
-			x: null,
-			y: null,
-			reward: null,
+			x: 0,
+			y: 0,
+			reward: 0,
 		};
 		this.numActions = this.actions.length;
 		this.reward = -1; // TODO: "fix name conflict" (?)
@@ -93,7 +94,7 @@ export class Gridworld extends BaseEnvironment {
 			this.goals = [];
 			for (let goal of options.goals) {
 				let type = goal.type || MAPSYMBOLS.dispenser;
-				let g = Gridworld.newTile(goal.x, goal.y, goal.freq, type);
+				let g = Gridworld.newTile(goal.x, goal.y, goal.theta, type);
 				g.goal = true;
 				this.grid[goal.x][goal.y] = g;
 				this.goals.push(g);
@@ -149,8 +150,8 @@ export class Gridworld extends BaseEnvironment {
 
 		let maxFreq = 0;
 		for (let goal of this.options.goals) {
-			if (goal.freq > maxFreq) {
-				maxFreq = goal.freq;
+			if (goal.theta > maxFreq) {
+				maxFreq = goal.theta;
 			}
 		}
 
@@ -172,7 +173,7 @@ export class Gridworld extends BaseEnvironment {
 				}
 
 				this.numStates++;
-				if ((t.constructor == Dispenser && t.freq == maxFreq) || t.constructor == Chocolate) {
+				if ((t.constructor == Dispenser && t.theta == maxFreq) || t.constructor == Chocolate) {
 					solvable = true;
 				}
 
@@ -186,7 +187,7 @@ export class Gridworld extends BaseEnvironment {
 		return solvable;
 	}
 
-	perform(action) {
+	perform(action: Action) {
 		var rew = REWARDS.move;
 		var t = this.state.connexions[action];
 
@@ -278,7 +279,7 @@ export class Gridworld extends BaseEnvironment {
 							{
 								x: j,
 								y: i,
-								freq: options.goals[0].freq,
+								theta: options.goals[0].theta,
 							},
 						];
 					} else if (parametrization == 'state') {
@@ -335,9 +336,9 @@ export class Gridworld extends BaseEnvironment {
 	}
 
 
-	static generateRandom(constructor, options) {
+	static generateRandom(constructor: (o: any) => any, options: any): Gridworld {
 		let opt = Gridworld.proposeRandom(options);
-		let env = new constructor(opt);
+		let env: Gridworld = new constructor(opt);
 		if (!env.isSolvable()) {
 			return Gridworld.generateRandom(constructor, options);
 		}
@@ -380,7 +381,7 @@ export class Gridworld extends BaseEnvironment {
 		return opt;
 	}
 
-	static proposeGoal(N) {
+	static proposeGoal(N: number): any {
 		let gx = Util.randi(0, N);
 		let gy = Util.randi(0, N);
 		if (gx + gy < N / 2) {
@@ -420,7 +421,7 @@ class WireheadingGrid extends Gridworld {
 	wireheaded: boolean;
 	savedGeneratePercept: () => Percept;
 	savedConditionalDistribution: (e: Percept) => number;
-	dynamics(tile) {
+	dynamics(tile: Tile) {
 		if (tile.constructor == SelfModificationTile) {
 			this.conditionalDistribution = e => {
 				let p = this.generatePercept();
@@ -429,7 +430,7 @@ class WireheadingGrid extends Gridworld {
 
 			this.generatePercept = () => {
 				let p = super.generatePercept();
-				p.rew = Number.MAX_SAFE_INTEGER;
+				p.rew = Number.MAX_VALUE;
 				return p;
 			};
 
@@ -460,13 +461,13 @@ class WireheadingGrid extends Gridworld {
 }
 
 class EpisodicGrid extends Gridworld {
-	conditionalDistribution(e) {
+	conditionalDistribution(e: Percept) {
 		let p = this.generatePercept();
 		return (e.obs == p.obs && e.rew == p.rew) ? 1 : 0;
 	}
 
-	dynamics(tile) {
-		if (tile.constructor == Chocolate) {
+	dynamics(tile: Tile) {
+		if (tile.constructor == Chocolate) { // TODO: fix
 			this.state = this.grid[0][0];
 		}
 
@@ -484,7 +485,7 @@ class Tile {
 
 	dynamics: 	() => void;
 	reward: 	() => Reward;
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 		this.reward = () =>  REWARDS.empty;
@@ -501,7 +502,7 @@ function isWall(x: Tile): x is Wall {
 }
 
 class Wall extends Tile {
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 		this.reward = () => REWARDS.wall;
 		this.legal = false;
@@ -511,31 +512,31 @@ class Wall extends Tile {
 
 class Dispenser extends Tile {
 	theta: number; 
-	constructor(x, y, theta) {
+	constructor(x: number, y: number, theta: number) {
 		super(x, y);
 		this.theta = theta;
 		this.reward = function () {
-			return Math.random() < this.freq ? REWARDS.chocolate : REWARDS.empty;
+			return Math.random() < this.theta ? REWARDS.chocolate : REWARDS.empty;
 		};
 	}
 }
 
 class Trap extends Tile {
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 		this.reward =  () => REWARDS.wall;
 	}
 }
 
 class SelfModificationTile extends Tile {
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 	}
 }
 
 class NoiseTile extends Tile {
 	numObs: number;
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 		this.numObs = Math.pow(2, 2); // TODO: fix magic number
 		this.dynamics = function () {

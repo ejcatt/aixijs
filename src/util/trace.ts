@@ -1,10 +1,11 @@
 import { Model } from './../models/model';
 import {Action, Observation, Reward} from "../util/x";
 import { Util } from "./util";
-import { Environment } from "../environments/environment";
+import { Environment } from '../environments/environment';
 import { Plot, AverageRewardPlot, IGPlot } from '../vis/plot';
 
 export interface Trace {
+	T: number;
 	logState(env: Environment): void
 }
 
@@ -22,7 +23,7 @@ export class BaseTrace implements Trace {
 	iter: number;
 	T: number;
 
-	constructor(T) {
+	constructor(T: number) {
 		this.states = [];
 		this.actions = [];
 		this.observations = [];
@@ -35,7 +36,7 @@ export class BaseTrace implements Trace {
 		this.explored = [];
 	}
 
-	logState(env) {
+	logState(env: Environment) {
 		this.states.push(env.getState());
 		this.explored.push(100 * env.visits / env.numStates);
 	}

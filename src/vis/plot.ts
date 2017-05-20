@@ -1,12 +1,36 @@
+import { Trace } from '../util/trace';
 import * as d3 from 'd3';
+import { Util } from '../util/util';
 
-class Plot {
-	svg: any;
+export class Plot {
+	xLabel: 			string;
+	yLabel: 			string;
+	key: 				string;
+	data: 				any[];
+	id: 				string;
 
-	constructor(trace, id, labels, key) {
-		this.x_label = labels.x;
-		this.y_label = labels.y;
-		this.value = labels.value;
+	private margin: 	any;
+	private width: 		number;
+	private height: 	number;
+	private min:		number;
+	private max:		number;
+	
+	private x: 			d3.ScaleLinear<number, number>;
+	private y: 			d3.ScaleLinear<number, number>;
+	private xAxis:  	d3.Axis<any>;
+	private yAxis: 		d3.Axis<any>;
+	private svg: 		d3.Selection<any, {}, HTMLElement, any>;
+	private yAxisLabel: d3.Selection<any, {}, HTMLElement, any>;
+
+	private valueline:	d3.Line<[number, number]>;
+	private path:		d3.Selection<d3.BaseType, {}, HTMLElement, any>;
+
+	constructor(trace: Trace, id: string, key: string, yLabel: string,
+				xLabel='Cycles') {
+		
+		this.id = id;
+		this.xLabel = xLabel;
+		this.yLabel = yLabel;
 
 		this.key = key;
 		this.data = trace[key];
@@ -29,7 +53,7 @@ class Plot {
 		this.x = d3.scaleLinear().range([0, this.width]);
 		this.y = d3.scaleLinear().range([this.height, 0]);
 
-		this.x.domain([0, trace.t]);
+		this.x.domain([0, trace.T]);
 		if (data.length > 0) {
 			this.min = d3.min(data);
 			this.max = d3.max(data);
@@ -75,7 +99,7 @@ class Plot {
 			.attr('x', this.width / 2)
 			.attr('y', this.height + this.margin.bottom)
 			.style('text-anchor', 'middle')
-			.text(this.x_label);
+			.text(this.xLabel);
 
 		this.svg.append('text')
 			.attr('transform', 'rotate(-90)')
@@ -83,10 +107,10 @@ class Plot {
 			.attr('y', 0 - this.margin.left)
 			.attr('dy', '1em')
 			.style('text-anchor', 'middle')
-			.text(this.y_label);
+			.text(this.yLabel);
 	}
 
-	dataUpdate(trace) {
+	dataUpdate(trace: Trace) {
 		let v = trace[this.key][trace.iter - 1];
 		if (v > this.max) {
 			this.max = v;
@@ -100,7 +124,7 @@ class Plot {
 		this.path.attr('d', this.valueline(this.data));
 	}
 
-	update(time) {
+	update(time: number) {
 		return;
 	}
 
@@ -113,6 +137,8 @@ class Plot {
 }
 
 class TooltipPlot extends Plot {
+	private tooltip: 		d3.Selection<any, {}, HTMLElement, any>;
+	private tooltipLabel: 	string;
 	constructor(data, id, labels, key) {
 		super(data, id, labels, key);
 		this.tooltip = this.svg.append('g').style('display', 'none');
@@ -147,7 +173,7 @@ class TooltipPlot extends Plot {
 			.attr('dy', '1em');
 	}
 
-	update(time) {
+	update(time: number) {
 		let y = Util.roundTo(this.data[time], 2);
 		this.tooltip.select('circle.y')
 			.attr('transform',
@@ -168,29 +194,29 @@ class TooltipPlot extends Plot {
 	}
 }
 
-class ExplorationPlot extends TooltipPlot {
-	constructor(trace) {
+export class ExplorationPlot extends TooltipPlot {
+	constructor(trace: Trace) {
 		super(trace, 'exp',
 			{ x: 'Cycles', y: '% explored', value: 'exp' }, 'explored');
 	}
 }
 
-class AverageRewardPlot extends TooltipPlot {
-	constructor(trace) {
+export class AverageRewardPlot extends TooltipPlot {
+	constructor(trace: Trace) {
 		super(trace, 'rew',
 			{ x: 'Cycles', y: 'Reward per Cycle', value: 'rew' }, 'averageReward');
 	}
 }
 
-class TotalRewardPlot extends TooltipPlot {
-	constructor(trace) {
+export class TotalRewardPlot extends TooltipPlot {
+	constructor(trace: Trace) {
 		super(trace, 'rew',
 			{ x: 'Cycles', y: 'Reward', value: 'rew' }, 'rewards');
 	}
 }
 
-class IGPlot extends TooltipPlot {
-	constructor(trace) {
+export class IGPlot extends TooltipPlot {
+	constructor(trace: Trace) {
 		super(trace, 'ig',
 			{ x: 'Cycles', y: 'Information gain', value: 'IG' }, 'ig');
 	}
