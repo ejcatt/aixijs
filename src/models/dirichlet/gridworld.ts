@@ -1,3 +1,4 @@
+import { ModelInfo } from './../../x/trace';
 import { Stack } from './../../x/stack';
 import { Dirichlet } from './../../x/distribution';
 import {
@@ -303,6 +304,18 @@ export class DirichletGrid {
 
 	copy() {
 		return this; // TODO; fix
+	}
+
+	log(): ModelInfo {
+		let params = [];
+		for (let i = 0; i < this.N; i++) {
+			params.push(Util.arrayCopy(this.params[i]));
+		}
+
+		return {
+			weights: [...this.weights],
+			extras: params
+		};
 	}
 }
 

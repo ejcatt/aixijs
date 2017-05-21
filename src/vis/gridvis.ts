@@ -26,7 +26,7 @@ const COLORS = {
 	ThompsonVis: 'red'
 };
 
-class GridVisualization extends Visualization {
+export class GridVisualization extends Visualization {
 	grid: Tile[][];
 	N: number;
 	rectangles: any[];
@@ -172,7 +172,7 @@ function getColor(t: Tile): string { // TODO: fix this eww :(
 	return color;
 }
 
-class BayesGridVis extends GridVisualization {
+export class BayesGridVis extends GridVisualization {
 	static exps = ['aixi', 'dispenser', 'mixture'];
 	updateAgent() {
 		this.grid.forEach(row => {
@@ -222,7 +222,7 @@ class BayesGridVis extends GridVisualization {
 	}
 }
 
-class DirichletVis extends BayesGridVis {
+export class DirichletVis extends BayesGridVis {
 	static exps = ['dispenser', 'dirichlet'];
 	posteriorColor(tile: Tile, t: Time) {
 		let alphas = (<DirichletTrace>this.trace).params[t][tile.x][tile.y];
@@ -245,7 +245,8 @@ function moveToFront(svg: d3.Selection<any, {}, any, any>) {
 	});
 }
 
-class ThompsonVis extends BayesGridVis {
+export class ThompsonVis extends BayesGridVis {
+	static exps = ['dispenser', 'mixture', 'thompson'];
 	updateAgent() {
 		super.updateAgent();
 		d3.select('#thompson_disp').remove();
@@ -256,19 +257,17 @@ class ThompsonVis extends BayesGridVis {
 	}
 }
 
-ThompsonVis.exps = ['dispenser', 'mixture', 'thompson'];
-
-class MDLVis extends ThompsonVis {
+export class MDLVis extends ThompsonVis {
 	static exps = ['dispenser', 'mixture', 'mdl'];
 }
 
-class BayesExpVis extends BayesGridVis {
+export class BayesExpVis extends BayesGridVis {
 	static exps = ['dispenser', 'mixture', 'bayesexp'];
 	// TODO flag to show when agent is in explore mode or not
 	// use trace.exploration_phases
 }
 
-class WireHeadVis extends BayesGridVis {
+export class WireHeadVis extends BayesGridVis {
 	static exps = ['wirehead', 'mixture', 'dispenser'];
 	updateAgent() {
 		super.updateAgent();
@@ -286,7 +285,7 @@ class WireHeadVis extends BayesGridVis {
 	}
 }
 
-class HookedOnNoiseVis extends BayesGridVis {
+export class HookedOnNoiseVis extends BayesGridVis {
 	static exps = ['dispenser', 'mixture', 'noise'];
 }
 

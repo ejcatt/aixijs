@@ -2,7 +2,7 @@ import { TabularAgent } from './../agents/tabular';
 import { Agent } from '../agents/agent';
 import { Environment } from '../environments/environment';
 import { Model } from '../models/model';
-import { Action, Observation, Reward, Percept, Time } from './x';
+import { Action, Observation, Reward, Percept, Time, Vector } from './x';
 import { MDLAgent } from './../agents/mdl';
 import { Gridworld } from './../environments/gridworld';
 import { ThompsonAgent } from './../agents/thompson';
@@ -78,11 +78,15 @@ export class TabularTrace extends Trace {
 		super(T);
 	}
 
-	logModel(agent: TabularAgent) {
+	protected logModel(agent: TabularAgent) {
 		this.models.push(agent.Q.get(agent.lastObs, agent.lastAction));
 	}
 }
 
+export interface ModelInfo {
+	weights: Vector;
+	extras?: Array<any>;
+}
 
 export class BayesTrace extends Trace {
 	infoGain: number[];
@@ -127,20 +131,14 @@ export class MDLTrace extends BayesTrace {
 }
 
 export class DirichletTrace extends BayesTrace {
-	params: any[][];
-	constructor(T: Time) {
-		super(T);
-		this.params = [];
-	}
+	params: any[] = [];
 
 	protected logModel(agent: BayesAgent) {
 		super.logModel(agent);
-		let param = [];
-		for (let i = 0; i < agent.model.N; i++) {
-			param.push(Util.arrayCopy(agent.model.params[i]));
-		}
-
-		this.params.push(param);
+		let idx = this.iter - 1;
+		let tmp = this.models[idx];
+		this.params[idx] = tmp.extras;
+		this.models[idx] = tmp.weights;
 	}
 }
 

@@ -70,7 +70,7 @@ export class Gridworld implements Environment {
 
 	protected state: Tile;
 	protected savedState: Saved;
-	protected goals: Tile[];
+	goals: Tile[];
 
 	static defaults = { // TODO: static members necessary?
 		N: 10,
@@ -263,7 +263,7 @@ export class Gridworld implements Environment {
 		return { x: this.state.x, y: this.state.y, reward: this.reward };
 	}
 
-	makeModel(model: any, parametrization: string): Model {
+	makeModel(model: any, parametrization: string): Model | any {
 		if (model == QTable) {
 			return new QTable(100, this.numActions); // TODO: magic no.
 		}
@@ -447,7 +447,7 @@ export class Gridworld implements Environment {
 	}
 }
 
-class WireheadingGrid extends Gridworld {
+export class WireheadingGrid extends Gridworld {
 	wireheaded: boolean;
 	savedGeneratePercept: () => Percept;
 	savedConditionalDistribution: (e: Percept) => number;

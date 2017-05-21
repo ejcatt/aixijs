@@ -6,6 +6,7 @@ import { MDLTrace } from '../x/trace';
 import { ExpectimaxTree } from '../planners/mcts';
 import { Vector, Action, Percept, Index } from '../x/x';
 
+// TODO: add regularized version for stochastic environment class
 export class MDLAgent extends BayesAgent {
 	idx: number = 0;
 	model: BayesMixture;

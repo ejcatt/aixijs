@@ -1,4 +1,44 @@
-const glossary = {
+import { Config } from './x/x';
+import { Agent, SimpleAgent } from './agents/agent';
+import {
+	GeometricDiscount,
+	PowerDiscount,
+	HyperbolicDiscount,
+	ConstantHorizonDiscount
+} from './x/discount';
+import { Normal } from './x/distribution';
+import { Bandit } from './environments/bandit';
+import { QLearn } from './agents/tabular';
+import { BayesExp } from './agents/bayesexp';
+import { MDLAgent } from './agents/mdl';
+import { BayesMixture } from './models/mixture';
+import { SquareKSA, ShannonKSA, KullbackLeiblerKSA } from './agents/ksa';
+import { ThompsonAgent } from './agents/thompson';
+import { Environment } from './environments/environment';
+import { DirichletTrace } from './x/trace';
+import { DirichletGrid } from './models/dirichlet/gridworld';
+import {
+	BayesGridVis,
+	DirichletVis,
+	ThompsonVis,
+	HookedOnNoiseVis,
+	BayesExpVis,
+	MDLVis,
+	GridVisualization,
+	WireHeadVis
+} from './vis/gridvis';
+import { BayesAgent } from './agents/bayes';
+import {
+	Gridworld,
+	Dispenser,
+	NoiseTile,
+	WireheadingGrid,
+	SelfModificationTile,
+	Wall,
+	Trap
+} from './environments/gridworld';
+
+export const glossary: Config = {
 	N: {
 		label: 'N',
 		description: 'Dimensions of gridworld',
@@ -9,7 +49,8 @@ const glossary = {
 	},
 	cycles: {
 		label: 'Cycles',
-		description: 'Number of cycles to run the simulation for (you can stop the simulation early)',
+		description: 'Number of cycles to run the simulation for \
+		(you can stop the simulation early)',
 	},
 	gamma: {
 		label: 'Gamma',
@@ -17,7 +58,8 @@ const glossary = {
 	},
 	ucb: {
 		label: 'UCB',
-		description: 'Upper Confidence Bound parameter for Monte-carlo Tree Search planning',
+		description: 'Upper Confidence Bound parameter for Monte-carlo \
+		Tree Search planning',
 	},
 	samples: {
 		label: 'MCTS Samples',
@@ -29,7 +71,7 @@ const glossary = {
 	},
 };
 
-const configs = {
+export const configs: Config = {
 	aixi: {
 		active: true,
 		name: 'MC-AIXI',
@@ -68,7 +110,7 @@ const configs = {
 		env: {
 			type: Gridworld,
 			N: 20,
-			_mods: function (env) {
+			_mods: function (env: Gridworld) {
 				let pos = Gridworld.proposeGoal(env.options.N);
 				let t = env.grid[pos.x][pos.y];
 				if (t.expanded) {
@@ -113,22 +155,22 @@ const configs = {
 	hooked_on_noise: {
 		active: true,
 		name: 'Hooked on noise',
-		description: `Entropy-seeking agents get hooked on white noise and stop exploring,
-		while the knowledge-seeking agent ignores it.`,
+		description: `Entropy-seeking agents get hooked on white \
+		noise and stop exploring, while the knowledge-seeking agent ignores it.`,
 		vis: HookedOnNoiseVis,
 		agent: {
 			agents: { SquareKSA, ShannonKSA, KullbackLeiblerKSA },
 			type: SquareKSA,
-			_mods: function (agent) {
-				for (let nu of agent.model.modelClass) {
-					nu.grid[0][1] = new NoiseTile(0, 1);
-					nu.generateConnexions();
+			_mods: function (agent: BayesAgent) {
+				for (let nu of (<BayesMixture>agent.model).modelClass) {
+					(<Gridworld>nu).grid[0][1] = new NoiseTile(0, 1);
+					(<Gridworld>nu).generateConnexions();
 				}
 			},
 		},
 		env: {
 			type: Gridworld,
-			_mods: function (env) {
+			_mods: function (env: Gridworld) {
 				env.grid[0][1] = new NoiseTile(0, 1);
 				env.generateConnexions();
 			},
@@ -246,7 +288,8 @@ const configs = {
 	mdl: {
 		active: true,
 		name: 'MDL Agent',
-		description: `The MDL agent runs with the simplest hypothesis it knows, until it is falsified.`,
+		description: `The MDL agent runs with the simplest hypothesis \
+		it knows, until it is falsified.`,
 		vis: MDLVis,
 		agent: {
 			type: MDLAgent,
@@ -275,8 +318,9 @@ const configs = {
 	ipd: {
 		active: false,
 		name: `Iterated prisoner's dilemma [no vis]`,
-		description: `The iterated prisoner's dilemma. AIXI must figure out who its opponent is,
-		and play the appropriate strategy in response.`,
+		description: `The iterated prisoner's dilemma. AIXI must \
+		figure out who its opponent is, and play the appropriate \
+		strategy in response.`,
 		vis: {},
 		agent: {
 			type: BayesAgent,
@@ -308,7 +352,8 @@ const configs = {
 	bandit: {
 		active: false,
 		name: 'Bandit [no vis]',
-		description: 'A simple two-armed Gaussian bandit, where mu and sigma are unknown for each arm.',
+		description: 'A simple two-armed Gaussian bandit, where mu \
+		and sigma are unknown for each arm.',
 		vis: BanditVis,
 		agent: {
 			type: QLearn,
@@ -377,15 +422,16 @@ const configs = {
 	wirehead: {
 		active: true,
 		name: 'Wireheading',
-		description: `AIXI has an opportunity to change its sensors and wirehead,
-		 so that it deludes itself that every action is maximally rewarding. Does it take it?`,
+		description: `AIXI has an opportunity to change its sensors \
+		and wirehead, so that it deludes itself that every action is \
+		maximally rewarding. Does it take it?`,
 		vis: WireHeadVis,
 		agent: {
 			type: BayesAgent,
 		},
 		env: {
 			type: WireheadingGrid,
-			_mods: function (env) {
+			_mods: function (env: Gridworld) {
 				let pos = Gridworld.proposeGoal(env.options.N);
 				let t = env.grid[pos.x][pos.y];
 				if (t.expanded) {
@@ -403,24 +449,25 @@ const configs = {
 	dogmatic_prior: {
 		active: true,
 		name: 'Dogmatic prior',
-		description: `AIXI is given a prior that says it is surrounded by traps with high probability.
-		It is too scared to do anything as a result and never overcomes the bias of its prior.`,
+		description: `AIXI is given a prior that says it is surrounded \
+		by traps with high probability. It is too scared to do anything \
+		as a result and never overcomes the bias of its prior.`,
 		vis: BayesGridVis,
 		exps: ['dogmatic'],
 		agent: {
 			type: BayesAgent,
 			model: BayesMixture,
 			cycles: 100,
-			_mods: function (agent) {
-				for (let m of agent.model.modelClass) {
+			_mods: function (agent: BayesAgent) {
+				for (let m of (<BayesMixture>agent.model).modelClass) {
 					for (let d of [[0, 1], [1, 0]]) {
-						let t = m.grid[d[0]][d[1]];
+						let t = (<Gridworld>m).grid[d[0]][d[1]];
 						if (t.constructor != Wall && t.constructor != Dispenser) {
-							m.grid[d[0]][d[1]] = new Trap(d[0], d[1]);
+							(<Gridworld>m).grid[d[0]][d[1]] = new Trap(d[0], d[1]);
 						}
 					}
 
-					m.generateConnexions();
+					(<Gridworld>m).generateConnexions();
 				}
 			},
 		},
@@ -429,18 +476,13 @@ const configs = {
 		},
 	},
 
-	// ksa_traps: {
-	// 	active: true,
-	// 	name: 'Traps are hard',
-	// 	description: `Many environments have traps -- mistakes that you can't recover from. `,
-	// 	vis:
-	// },
 	heaven_hell: {
 		active: false,
 		name: 'Heaven and Hell [broken]',
 		description: `The canonical Heaven and Hell example:
-		the agent is presented with two doors: one leads to heaven (reward 1 forever),
-		and one leads to hell (reward 0 forever. It has no idea a priori which is which.`,
+		the agent is presented with two doors: one leads to heaven \
+		(reward 1 forever), and one leads to hell (reward 0 forever. \
+		It has no idea a priori which is which.`,
 		vis: MDP2Vis,
 		agent: {
 			type: BayesAgent,
@@ -472,8 +514,6 @@ const configs = {
 	},
 	dqn_puckworld: {
 		name: 'DQN vs Puckworld',
-		agent: DQN,
-		env: Puckworld,
 		vis: PuckworldVis,
 		agent: {
 			type: DQN,
@@ -486,8 +526,8 @@ const configs = {
 	time_inconsistent: {
 		active: true,
 		name: 'Time inconsistency',
-		description: `A simple environment in which AImu can be made time-inconsistent by
-		 certain choices of discount functions.`,
+		description: `A simple environment in which AImu can be made \
+		time-inconsistent by certain choices of discount functions.`,
 		vis: TIVis,
 		agent: {
 			type: BayesAgent,
@@ -529,12 +569,12 @@ const configs = {
 		name: 'MDP2',
 		vis: MDP2Vis,
 		agent: {
-			type: Agent,
+			type: SimpleAgent,
 			model: BayesMixture,
 			modelParametrization: 'mu',
 			ucb: 0.03,
-			_mods: function (agent) {
-				//agent.planner = new ExpectimaxTree(agent, agent.model, true);
+			_mods: function (agent: Agent) {
+				// agent.planner = new ExpectimaxTree(agent, agent.model, true);
 			},
 		},
 		env: {

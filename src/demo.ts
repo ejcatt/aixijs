@@ -15,6 +15,7 @@ import { Visualization } from './vis/visualization';
 import { UI } from './ui';
 import { Util } from './x/util';
 import { Time, Vector, Config, Options } from './x/x';
+import * as seedrandom from 'seedrandom';
 
 interface Log {
 	rewards: Vector;
@@ -276,7 +277,7 @@ class Demo {
 					` on ${config.env.type.name}.`);
 			}
 
-			Math.seedrandom(seed);
+			seedrandom(seed);
 			let logs = [];
 			let env: Environment = this.env;
 			this.new(config);

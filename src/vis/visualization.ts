@@ -20,7 +20,7 @@ export class Visualization {
 			.append('svg')
 			.attr('id', 'vis_svg');
 
-		ui.slider.max = this.T;
+		ui.slider.max = this.T.toString();
 	}
 
 	pause() {
@@ -62,7 +62,7 @@ export class Visualization {
 	}
 
 	private updateUI() {
-		this.ui.slider.value = this.t;
+		this.ui.slider.value = this.t.toString();
 	}
 
 	protected updateAgent() {

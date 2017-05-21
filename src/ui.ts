@@ -1,6 +1,7 @@
+import { configs, glossary } from './config';
 import { demo } from './demo';
 export class UI {
-	slider: HTMLElement;
+	slider: HTMLInputElement;
 	doc: HTMLDocument = document;
 	params: any;
 
@@ -228,7 +229,7 @@ export class UI {
 		this.show('plots');
 		this.hide('run');
 		this.hide('back');
-		this.slider = <HTMLElement>this.getElementById('slider')!;
+		this.slider = <HTMLInputElement>this.getElementById('slider')!;
 	}
 
 	end() {
