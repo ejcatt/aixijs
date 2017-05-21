@@ -24,6 +24,7 @@
     "@types/d3": "^4.9.0",
     "@types/jquery": "^2.0.45",
     "@types/mathjs": "0.0.34",
+    "@types/seedrandom": "^2.4.27",
     "d3": "^4.9.1",
     "jquery": "^3.2.1",
     "mathjs": "^3.13.1"
