@@ -253,7 +253,7 @@ const configs = {
 			ucb: 0.5,
 			samples: 5000,
 			horizon: 12,
-			discountParam: {gamma: 0.8},
+			discountParam: { gamma: 0.8 },
 		},
 		env: {
 			type: Gridworld,

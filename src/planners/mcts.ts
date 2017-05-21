@@ -1,10 +1,11 @@
+import { Environment } from './../environments/environment';
 import { Model } from '../models/model';
 import { Action, Percept, Reward, Time } from '../x/x';
 import { Util } from '../x/util';
 import { Discount } from '../x/discount';
 
 export class ExpectimaxTree {
-	model: Model;
+	model: Model | Environment;
 	horizon: number;
 	ucb: number;
 	samples: number;
@@ -19,7 +20,7 @@ export class ExpectimaxTree {
 	discount: Discount;
 
 	constructor(options: any,
-		model: Model,
+		model: Model | Environment,
 		rewardFunction: (e: Percept, dfr: number) => Reward,
 		discountFunction: (dfr: Time, t: Time) => number) {
 		this.model = model;
@@ -107,10 +108,10 @@ export class ExpectimaxTree {
 	rollout(horizon: number, dfr: number): Reward {
 		var reward = 0;
 		for (var i = dfr; i <= horizon; i++) {
-			var action = Math.floor(Math.random() * this.numActions);
-			this.model.perform(action);
+			var a = Math.floor(Math.random() * this.numActions);
+			this.model.perform(a);
 			var e = this.model.generatePercept();
-			this.model.bayesUpdate(action, e);
+			this.model.bayesUpdate(a, e);
 			reward += this.reward(e, i);
 		}
 

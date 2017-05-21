@@ -1,7 +1,8 @@
 import { Index } from './x';
+import { Util } from './util';
 
-export class Queue {
-	arr: Array<any>;
+export class Queue<T> {
+	arr: Array<T>;
 	N: Index;
 	pos: Index;
 	constructor() {
@@ -10,11 +11,11 @@ export class Queue {
 		this.pos = 0;
 	}
 
-	isEmpty() {
+	isEmpty(): boolean {
 		return this.pos == this.N;
 	}
 
-	append(item: any) {
+	append(item: T): void {
 		if (this.N == this.arr.length) {
 			this.arr.push(item);
 		} else {
@@ -24,10 +25,8 @@ export class Queue {
 		this.N++;
 	}
 
-	remove() {
-		if (this.isEmpty()) {
-			throw 'Attempted to dequeue from empty queue!';
-		}
+	remove(): T {
+		Util.assert(!this.isEmpty());
 		var val = this.arr[this.pos];
 		this.pos++;
 		if (this.pos * 2 >= this.N) {
@@ -38,15 +37,15 @@ export class Queue {
 		return val;
 	}
 
-	peek() {
+	peek(): T {
 		return this.arr[this.pos];
 	}
 
-	peekBack() {
+	peekBack(): T {
 		return this.arr[this.N - 1];
 	}
 
-	popBack() {
+	popBack(): T {
 		var val = this.arr[this.N - 1];
 		this.N--;
 		return val;

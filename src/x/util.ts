@@ -37,7 +37,7 @@ export namespace Util {
 		return p;
 	}
 
-	export function deepCopy(obj: Object): Object {
+	export function deepCopy<T>(obj: T): T {
 		return jQuery.extend(true, {}, obj);
 	}
 

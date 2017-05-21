@@ -9,7 +9,7 @@ export interface Model {
 	save(): void;
 	load(): void;
 	copy(): Model;
-	infoGain(): number;
+	infoGain(): number; // TODO move these into BayesModel?
 	entropy(): number;
 	log(): any;
 }

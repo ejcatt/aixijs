@@ -8,7 +8,9 @@ import { ThompsonAgent } from './../agents/thompson';
 import { BayesAgent } from './../agents/bayes';
 import { BayesExp } from './../agents/bayesexp';
 import { Util } from './util';
-import { Plot, AverageRewardPlot, IGPlot } from '../vis/plot';
+import { Plot, AverageRewardPlot, IGPlot, PlotConstructor } from '../vis/plot';
+
+export type TraceConstructor = new (t: Time) => Trace;
 
 export class Trace {
 	states: any[];
@@ -20,9 +22,12 @@ export class Trace {
 	explored: number[];
 	models: any[];
 
-	plots: (new (t: Trace) => Plot)[] = [AverageRewardPlot];
+	plots: PlotConstructor[] = [AverageRewardPlot];
 	iter: number;
 	T: Time;
+
+	runtime: Time;
+	fps: number;
 
 	constructor(T: Time) {
 		this.states = [];

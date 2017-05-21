@@ -1,13 +1,14 @@
+import { Environment } from './../environments/environment';
 import { Model } from './model';
 import { Util } from '../x/util';
 import { Action, Percept, Vector } from '../x/x';
 
 export class BayesMixture implements Model {
-	modelClass: Model[];
+	modelClass: Environment[];
 	weights: number[];
 	savedWeights: number[];
 	N: number;
-	constructor(modelClass: Model[], weights: Vector) {
+	constructor(modelClass: Environment[], weights: Vector) {
 		this.modelClass = [...modelClass];
 		this.weights = [...weights];
 

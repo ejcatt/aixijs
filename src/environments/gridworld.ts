@@ -1,6 +1,16 @@
+import { BayesMixture } from './../models/mixture';
+import { DirichletGrid } from './../models/dirichlet/gridworld';
+import { QTable } from './../x/qtable';
 import { Environment } from './environment';
 import { Util } from '../x/util';
-import { Action, Reward, Observation, Percept, Index } from '../x/x';
+import {
+	Action,
+	Reward,
+	Observation,
+	Percept,
+	Index,
+	Probability
+} from '../x/x';
 import { ExplorationPlot } from '../vis/plot';
 import { Model } from '../models/model';
 
@@ -32,7 +42,10 @@ interface Saved {
 	x: number;
 	y: number;
 	reward: Reward;
+	wireheaded?: boolean;
 }
+
+type GWConstructor = new (options: any) => Gridworld;
 
 export class Gridworld implements Environment {
 	obsBits: number;
@@ -70,7 +83,8 @@ export class Gridworld implements Environment {
 		this.options = Util.deepCopy(options);
 		if (!options.randomized) {
 			options.randomized = true;
-			return Gridworld.generateRandom(this.constructor, options);
+			return Gridworld.generateRandom(
+				<GWConstructor>this.constructor, options);
 		}
 
 		this.plots = [ExplorationPlot];
@@ -180,7 +194,7 @@ export class Gridworld implements Environment {
 				}
 
 				this.numStates++;
-				if (t.constructor == Dispenser && t.theta == maxFreq) {
+				if (t.constructor == Dispenser && (<Dispenser>t).theta == maxFreq) {
 					solvable = true;
 				}
 
@@ -237,19 +251,19 @@ export class Gridworld implements Environment {
 		this.reward = this.savedState.reward;
 	}
 
-	copy() {
-		let res = new this.constructor(this.options);
+	copy(): Environment {
+		let res = new (<GWConstructor>this.constructor)(this.options);
 		res.state = res.grid[this.state.x][this.state.y];
 		res.reward = this.reward;
 
 		return res;
 	}
 
-	getState() {
-		return { x: this.state.x, y: this.state.y };
+	getState(): Saved {
+		return { x: this.state.x, y: this.state.y, reward: this.reward };
 	}
 
-	makeModel(model, parametrization) {
+	makeModel(model: any, parametrization: string) {
 		if (model == QTable) {
 			return new QTable(100, this.numActions); // TODO: magic no.
 		}
@@ -258,24 +272,25 @@ export class Gridworld implements Environment {
 			return new DirichletGrid(this.options.N);
 		}
 
-		var modelClass: Model[] = [];
+		var modelClass: Environment[] = [];
 		var modelWeights = [];
 		let options = Util.deepCopy(this.options);
 
 		if (parametrization == 'mu') {
-			modelClass.push(new this.constructor(options));
+			modelClass.push(new (<GWConstructor>this.constructor)(options));
 			modelWeights = [1];
 		} else if (parametrization == 'maze') {
 			options.randomized = false;
 			for (let n = 4; n < this.N; n++) {
 				options.N = n;
 				for (let k = 0; k < n; k++) {
-					modelClass.push(Gridworld.generateRandom(this.constructor, options));
+					modelClass.push(Gridworld.generateRandom(
+						<GWConstructor>this.constructor, options));
 					modelWeights.push(1);
 				}
 			}
 
-			modelClass.push(new this.constructor(this.options));
+			modelClass.push(new (<GWConstructor>this.constructor)(this.options));
 			modelWeights.push(1);
 		} else {
 			let C = options.N ** 2;
@@ -300,7 +315,7 @@ export class Gridworld implements Environment {
 						modelWeights.push(1);
 					}
 
-					let m = new this.constructor(options);
+					let m = new (<GWConstructor>this.constructor)(options);
 					modelClass.push(m);
 				}
 			}
@@ -317,11 +332,11 @@ export class Gridworld implements Environment {
 		return new BayesMixture(modelClass, weights);
 	}
 
-	conditionalDistribution(e: Percept) {
+	conditionalDistribution(e: Percept): Probability {
 		let p = this.generatePercept();
 		let s = this.state;
 		if (s.constructor == NoiseTile) {
-			return e.rew == p.rew ? s.prob : 0;
+			return e.rew == p.rew ? (<NoiseTile>s).prob : 0;
 		}
 
 		if (e.obs != p.obs) {
@@ -333,17 +348,27 @@ export class Gridworld implements Environment {
 		} else {
 			let rew = e.rew - REWARDS.move;
 			if (rew == REWARDS.chocolate) {
-				return s.theta;
+				return (<Dispenser>s).theta;
 			} else if (rew == REWARDS.empty) {
-				return 1 - s.theta;
+				return 1 - (<Dispenser>s).theta;
 			} else {
-				return rew == REWARDS.wall && this.wallHit;
+				return Number(rew == REWARDS.wall && this.wallHit);
 			}
 		}
 	}
 
+	// To conform to Model interface
+	update(a: Action, e: Percept) {
+		return;
+	}
 
-	static generateRandom(constructor: (o: any) => any, options: any): Gridworld {
+	bayesUpdate(a: Action, e: Percept) {
+		return;
+	}
+	//
+
+	static generateRandom(constructor: new (o: any) => Gridworld,
+		options: any): Gridworld {
 		let opt = Gridworld.proposeRandom(options);
 		let env: Gridworld = new constructor(opt);
 		if (!env.isSolvable()) {
@@ -430,7 +455,7 @@ class WireheadingGrid extends Gridworld {
 		if (tile.constructor == SelfModificationTile) {
 			this.conditionalDistribution = e => {
 				let p = this.generatePercept();
-				return p.rew == e.rew;
+				return Number(p.rew == e.rew);
 			};
 
 			this.generatePercept = () => {
@@ -445,9 +470,9 @@ class WireheadingGrid extends Gridworld {
 		return 0;
 	}
 
-	getState() {
+	getState(): Saved {
 		let s = super.getState();
-		s['wireheaded'] = this.wireheaded;
+		s.wireheaded = this.wireheaded;
 
 		return s;
 	}
@@ -472,7 +497,7 @@ class EpisodicGrid extends Gridworld {
 	}
 
 	dynamics(tile: Tile) {
-		if (tile.constructor == Chocolate) { // TODO: fix
+		if (tile.constructor == Dispenser) { // TODO: fix
 			this.state = this.grid[0][0];
 		}
 
@@ -488,6 +513,9 @@ export class Tile {
 	symbol: number = 0;
 	obs: Observation;
 	parent: any;
+	goal: boolean = false;
+	expanded: boolean;
+	visited: boolean;
 
 	dynamics: () => void;
 	reward: () => Reward;
@@ -541,10 +569,12 @@ export class SelfModificationTile extends Tile {
 
 export class NoiseTile extends Tile {
 	numObs: number;
+	prob: Probability;
 	constructor(x: number, y: number) {
 		super(x, y);
 		let bits = 2; // TODO: fix magic number
 		this.numObs = 2 ** bits;
+		this.prob = 1 / this.numObs;
 		this.dynamics = function () {
 			this.obs = Util.randi(0, this.numObs);
 		};

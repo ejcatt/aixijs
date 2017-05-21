@@ -1,3 +1,4 @@
+import { Stack } from './../../x/stack';
 import { Dirichlet } from './../../x/distribution';
 import {
 	Gridworld,
@@ -8,14 +9,14 @@ import {
 	Wall,
 	Trap
 } from './../../environments/gridworld';
-import { Action, Percept, Vector, BitVector } from '../../x/x';
+import { Action, Percept, Vector, BitVector, Tuple, Index } from '../../x/x';
 import { Queue } from '../../x/queue';
 import { Util } from '../../x/util';
 
 export class DirichletGrid {
 	percept: any;
-	weightQueue: Queue;
-	paramQueue: Queue;
+	weightQueue: Queue<number>;
+	paramQueue: Queue<Tuple>;
 	actions: any[];
 	numActions: Action;
 	N: number;
@@ -26,7 +27,7 @@ export class DirichletGrid {
 
 	private savedParams: any[];
 	private savedWeights: Vector;
-	private savedState: any[];
+	private savedState: { x: number, y: number };
 
 	private wall: any;
 	private state: DirichletTile;
@@ -39,8 +40,8 @@ export class DirichletGrid {
 
 		this.grid = [];
 		this.params = [];
-		this.weightQueue = new Queue();
-		this.paramQueue = new Queue();
+		this.weightQueue = new Queue<number>();
+		this.paramQueue = new Queue<Tuple>();
 
 		for (let idx = 0; idx < this.N; idx++) {
 			let gridrow = [];
@@ -241,7 +242,7 @@ export class DirichletGrid {
 	}
 
 	infoGain(): number {
-		var stack = [];
+		var stack = new Stack<Index>();
 		var s = this.state;
 		var ne = s.neighbors;
 		var ig = 0;
@@ -257,7 +258,7 @@ export class DirichletGrid {
 				ig += p_ * Math.log(p_) - p * Math.log(p);
 			}
 		}
-		while (stack.length > 0) {
+		while (stack.size > 0) {
 			let idx = stack.pop();
 			this.weightQueue.append(idx);
 		}

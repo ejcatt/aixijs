@@ -1,9 +1,10 @@
-import { Trace } from '../x/trace';
+import { Trace, TraceConstructor } from '../x/trace';
 import { Discount, GeometricDiscount } from '../x/discount';
 import { Action, Reward, Percept, Time } from '../x/x';
 import { Util } from '../x/util';
 
 export interface Agent {
+	tracer: TraceConstructor;
 	selectAction(e: Percept): Action;
 	update(a: Action, e: Percept): void;
 	reward(e: Percept, dfr: number): Reward;
@@ -11,7 +12,7 @@ export interface Agent {
 
 export class SimpleAgent {
 	numActions: Action;
-	tracer: new (T: Time) => Trace;
+	tracer: TraceConstructor;
 	discount: Discount;
 	options: any;
 	age: number;

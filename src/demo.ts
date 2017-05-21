@@ -1,7 +1,38 @@
-const demo = {
-	ui: new UI(),
+import { Plot } from './vis/plot';
+import { Trace } from './x/trace';
+import { Agent } from './agents/agent';
+import { Environment } from './environments/environment';
+import { Visualization } from './vis/visualization';
+import { UI } from './ui';
+import { Util } from './x/util';
+import { Time } from './x/x';
 
-	new(config) {
+type Config = any;
+type Options = any;
+
+class Demo {
+	agent: Agent;
+	env: Environment;
+	trace: Trace;
+
+	ui: UI = new UI();
+	vis: Visualization;
+	plots: Plot[];
+
+	enableVis: boolean;
+	config: any;
+
+	t0: Time;
+
+	cancel: boolean;
+
+	experimentNumber: number = 0;
+
+	constructor() { }
+
+
+	new(config: Config) {
+		this.config = config;
 		if (this.vis) this.vis.pause();
 
 		// get defaults
@@ -31,26 +62,25 @@ const demo = {
 		this.ui.clear();
 		this.ui.push(config);
 
-		let label = this.ui.getElementById('setup_label');
-		label.innerText = `Setup: ${config.name}`;
-
-		this.config = config;
-
 		this.ui.clearExplanations();
 		if (!config.vis.exps) return;
 		for (let exp of config.vis.exps) {
 			this.ui.showExplanation(exp);
 		}
 
+		let label = <HTMLElement>this.ui.getElementById('setup_label')!;
+		label.innerText = `Setup: ${config.name}`;
+
 		if (!config.exps) return;
 
 		for (let exp of config.exps) {
 			this.ui.showExplanation(exp);
 		}
-	},
 
-	run(novis, env) {
-		this.novis = novis;
+	}
+
+	run(env?: Environment, enableVis = true) {
+		this.enableVis = enableVis;
 
 		// new: class defaults -> config -> ui
 		// run: ui -> options -> env/agent
@@ -63,8 +93,9 @@ const demo = {
 			options.env._mods(this.env);
 		}
 
-		options.agent.model = this.env.makeModel(options.agent.model, options.agent.modelParametrization);
-		options.agent.numActions = this.env.numActions || this.env.actions.length;
+		options.agent.model = this.env.makeModel(options.agent.model,
+			options.agent.modelParametrization);
+		options.agent.numActions = this.env.numActions;
 		options.agent.minReward = this.env.minReward;
 		options.agent.maxReward = this.env.maxReward;
 
@@ -76,8 +107,8 @@ const demo = {
 		}
 
 		this.trace = new this.agent.tracer(options.agent.cycles);
-
 		this.plots = [];
+
 		Plot.clearAll();
 		for (let P of this.trace.plots) {
 			this.plots.push(new P(this.trace));
@@ -87,13 +118,13 @@ const demo = {
 			this.plots.push(new P(this.trace));
 		}
 
-		let update = trace => {
+		let update = (trace: Trace) => {
 			for (let p of this.plots) {
 				p.dataUpdate(trace);
 			}
 		};
 
-		let callback = _ => {
+		let callback = () => {
 			this.ui.end();
 			this.cancel = false;
 			let frames = this.trace.iter;
@@ -103,20 +134,20 @@ const demo = {
 			this.trace.fps = fps;
 			console.log(`${frames} cycles, ${second} seconds (${fps} fps)`);
 
-			if (!novis && options.vis) {
+			if (enableVis && options.vis) {
 				this.vis = new options.vis(this.env, this.trace, this.ui);
 				this.vis.reset();
 			}
 		};
-		if (!novis) {
+		if (enableVis) {
 			this.ui.start();
 		}
 
 		this.t0 = performance.now();
-		this._simulate(update, callback);
-	},
+		this.simulate(update, callback);
+	}
 
-	_simulate(update, callback) {
+	private simulate(update: (trace: Trace) => void, callback: () => void) {
 		let trace = this.trace;
 		let agent = this.agent;
 		let env = this.env;
@@ -127,7 +158,7 @@ const demo = {
 		trace.log(agent, env, a, e);
 		agent.update(a, e);
 
-		let cycle = _ => {
+		let cycle = () => {
 			trace.log(agent, env, a, e);
 			a = agent.selectAction(e);
 			env.perform(a);
@@ -135,21 +166,10 @@ const demo = {
 			agent.update(a, e);
 		};
 
-		let loop;
-		if (this.novis) {
-			loop = _ => {
-				while (true) {
-					if (trace.iter >= trace.t) {
-						callback();
-						break;
-					}
-
-					cycle();
-				}
-			};
-		} else {
-			loop = _ => {
-				if (trace.iter >= trace.t || this.cancel) {
+		let loop: () => void;
+		if (this.enableVis) {
+			loop = () => {
+				if (trace.iter >= trace.T || this.cancel) {
 					callback();
 					return;
 				}
@@ -158,14 +178,26 @@ const demo = {
 				update(trace);
 				setTimeout(loop, 0);
 			};
+		} else {
+			loop = () => {
+				while (true) {
+					if (trace.iter >= trace.T) {
+						callback();
+						break;
+					}
+
+					cycle();
+				}
+			};
 		}
 
+
 		loop();
-	},
+	}
 
 	stop() {
 		this.cancel = true;
-	},
+	}
 
 	reset() {
 		if (this.vis) this.vis.remove();
@@ -175,45 +207,49 @@ const demo = {
 		this.ui.show('picker');
 		this.ui.hide('setup');
 		this.ui.clearExplanations();
-	},
+	}
 
-	experiment(dems, params) {
-		this.reset()
-		this.experiment_number ? this.experiment_number++ : this.experiment_number = 1;
+	experiment(dems: Config[], params: Config) {
+		this.reset();
+		this.experimentNumber++;
 		if (!params) {
 			// some defaults
 			params = {
 				runs: 1,
-				env: {N: 10},
-				agent: {cycles: 200},
-			}
+				frac: 1,
+				seed: 'aixi',
+				env: { N: 10 },
+				agent: { cycles: 200 },
+			};
 		}
-		var runs = params.runs || 1
-		var frac = params.frac || 1
-		results = {};
-		seed = params.seed || 'aixi';
+		let results = {};
+		let runs = params.runs;
+		let frac = params.frac;
+		let seed = params.seed;
 		let num = 1;
-		var t0 = performance.now()
+		var t0 = performance.now();
 		for (let cfg of dems) {
-			let config = Util.deepCopy(cfg)
+			let config = Util.deepCopy(cfg);
 			if (params.env) {
 				for (let param_name in params.env) {
-					config.env[param_name] = params.env[param_name]
+					config.env[param_name] = params.env[param_name];
 				}
 			}
 			if (params.agent) {
 				for (let param_name in params.agent) {
-					config.agent[param_name] = params.agent[param_name]
+					config.agent[param_name] = params.agent[param_name];
 				}
 			}
 			if (config.agent.model) {
-				console.log(`Running ${config.agent.type.name} with model ${config.agent.model.name} on ${config.env.type.name}.`)
+				console.log(`Running ${config.agent.type.name}` +
+					` with model ${config.agent.model.name} on ${config.env.type.name}.`);
 			} else {
-				console.log(`Running ${config.agent.type.name} on ${config.env.type.name}.`)
+				console.log(`Running ${config.agent.type.name}` +
+					` on ${config.env.type.name}.`);
 			}
 
 			Math.seedrandom(seed);
-			logs = [];
+			let logs = [];
 			let env = null;
 			this.new(config);
 			for (let i = 0; i < runs; i++) {
@@ -224,22 +260,21 @@ const demo = {
 						env.isSolvable();
 					}
 
-					this.run(true, env);
+					this.run(env, false);
 				} else {
-					this.run(true);
+					this.run(undefined, false);
 					env = this.env;
 				}
 
-				var rew = []
-				var exp = []
+				var rew = [];
+				var exp = [];
 				for (var j = 0; j < config.agent.cycles; j++) {
 					if (j % frac == 0) {
-						rew.push(this.trace.averageReward[j])
-						exp.push(this.trace.explored[j])
+						rew.push(this.trace.averageReward[j]);
+						exp.push(this.trace.explored[j]);
 					}
 				}
-
-				logs.push({
+				let log = {
 					rewards: rew,
 					explored: exp,
 					options: Util.deepCopy(this.config),
@@ -249,32 +284,35 @@ const demo = {
 					samples: this.agent.samples,
 					horizon: this.agent.horizon,
 					seed: seed,
-					gamma: this.agent.gamma,
-					epsilon: this.agent.epsilon,
-				});
+				};
+
+				logs.push(log);
 			}
-			var key = ''
+			let key: string;
 			if (config.name in results) {
-				key = `${config.name}-${num}`
+				key = `${config.name}-${num}`;
 				num++;
 			} else {
-				key = config.name
+				key = config.name;
 			}
-			results[key] = logs
+			results[key] = logs;
 		}
-		this.reset()
+		this.reset();
 
-		console.log(`Done! Total time elapsed: ${Math.floor(performance.now() - t0)/1000} seconds.`);
+		console.log(`Done! Total time elapsed:` +
+			` ${Math.floor(performance.now() - t0) / 1000} seconds.`);
 
 		let json = JSON.stringify(results);
 		let blob = new Blob([json], { type: 'application/json' });
 
 		let a = document.createElement('a');
-		a.download = `results-${this.experiment_number}.json`;
+		a.download = `results-${this.experimentNumber}.json`;
 		a.href = URL.createObjectURL(blob);
-		a.textContent = `Download results-${this.experiment_number}.json`;
+		a.textContent = `Download results-${this.experimentNumber}.json`;
 		document.body.appendChild(a);
 
 		return results;
-	},
-};
+	}
+}
+
+export const demo = new Demo();

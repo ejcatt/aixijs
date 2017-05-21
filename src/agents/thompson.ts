@@ -1,3 +1,4 @@
+import { Environment } from './../environments/environment';
 import { ExpectimaxTree } from './../planners/mcts';
 import { BayesMixture } from './../models/mixture';
 import { Model } from './../models/model';
@@ -8,7 +9,7 @@ import { Action } from '../x/x';
 import { Util } from '../x/util';
 
 export class ThompsonAgent extends BayesAgent {
-	rho: Model;
+	rho: Environment;
 	model: BayesMixture;
 	constructor(options: any) {
 		super(options);

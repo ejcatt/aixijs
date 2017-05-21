@@ -48,7 +48,15 @@ export class Bandit implements Environment {
 		return new QTable(10, this.actions.length);
 	}
 
+	copy(): Environment {
+		return new (<new (o: any) => Bandit>this.constructor)(this.options);
+	}
+
 	save() { }
 
 	load() { }
+
+	update(a: Action, e: Percept) { }
+
+	bayesUpdate(a: Action, e: Percept) { }
 }

@@ -1,12 +1,16 @@
+import { BayesTrace } from './../x/trace';
 import { Trace } from '../x/trace';
 import * as d3 from 'd3';
 import { Util } from '../x/util';
+import { Time, Vector } from '../x/x';
+
+export type PlotConstructor = new (trace: Trace) => Plot;
 
 export class Plot {
 	xLabel: string;
 	yLabel: string;
 	key: string;
-	data: any[];
+	data: Vector;
 	id: string;
 
 	private margin: any;
@@ -14,6 +18,8 @@ export class Plot {
 	private height: number;
 	private min: number;
 	private max: number;
+
+	private T: Time;
 
 	private xAxis: d3.Axis<any>;
 	private yAxis: d3.Axis<any>;
@@ -27,8 +33,8 @@ export class Plot {
 	protected svg: d3.Selection<any, {}, HTMLElement, any>;
 
 	constructor(trace: Trace,
+		data: number[],
 		id: string,
-		key: string,
 		yLabel: string,
 		xLabel = 'Cycles') {
 
@@ -36,9 +42,8 @@ export class Plot {
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
-		this.key = key;
-		this.data = trace[key];
-		let data = this.data;
+		this.data = data;
+		this.T = trace.T;
 
 		this.margin = { top: 50, right: 70, bottom: 30, left: 70 };
 		this.width = 500 - this.margin.left - this.margin.right;
@@ -57,10 +62,10 @@ export class Plot {
 		this.x = d3.scaleLinear().range([0, this.width]);
 		this.y = d3.scaleLinear().range([this.height, 0]);
 
-		this.x.domain([0, trace.T]);
+		this.x.domain([0, this.T]);
 		if (data.length > 0) {
-			this.min = d3.min(data);
-			this.max = d3.max(data);
+			this.min = d3.min(data)!;
+			this.max = d3.max(data)!;
 		} else {
 			this.min = 0;
 			this.max = 0;
@@ -144,12 +149,12 @@ class TooltipPlot extends Plot {
 	private tooltip: d3.Selection<any, {}, HTMLElement, any>;
 	private label: string;
 	constructor(trace: Trace,
+		data: Vector,
 		id: string,
-		key: string,
 		yLabel: string,
 		tooltipLabel: string,
 		xLabel = 'Cycles') {
-		super(trace, id, key, yLabel, xLabel);
+		super(trace, data, id, yLabel, xLabel);
 		this.label = tooltipLabel;
 		this.tooltip = this.svg.append('g').style('display', 'none');
 
@@ -210,8 +215,8 @@ class TooltipPlot extends Plot {
 export class ExplorationPlot extends TooltipPlot {
 	constructor(trace: Trace) {
 		super(trace,
+			trace.explored,
 			'exp',
-			'explored',
 			'% explored',
 			'expl');
 	}
@@ -220,8 +225,8 @@ export class ExplorationPlot extends TooltipPlot {
 export class AverageRewardPlot extends TooltipPlot {
 	constructor(trace: Trace) {
 		super(trace,
+			trace.averageReward,
 			'rew',
-			'averageReward',
 			'Reward per Cycle',
 			'r');
 	}
@@ -230,17 +235,17 @@ export class AverageRewardPlot extends TooltipPlot {
 export class TotalRewardPlot extends TooltipPlot {
 	constructor(trace: Trace) {
 		super(trace,
+			trace.rewards,
 			'rew',
-			'rewards',
 			'Reward',
 			'r');
 	}
 }
 
 export class IGPlot extends TooltipPlot {
-	constructor(trace: Trace) {
+	constructor(trace: BayesTrace) {
 		super(trace,
-			'ig',
+			trace.infoGain,
 			'ig',
 			'Information Gain',
 			'ig');

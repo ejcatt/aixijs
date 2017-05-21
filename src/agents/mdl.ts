@@ -1,3 +1,4 @@
+import { Environment } from './../environments/environment';
 import { Model } from './../models/model';
 import { BayesMixture } from './../models/mixture';
 import { BayesAgent } from './bayes';
@@ -8,8 +9,8 @@ import { Vector, Action, Percept, Index } from '../x/x';
 export class MDLAgent extends BayesAgent {
 	idx: number = 0;
 	model: BayesMixture;
-	sigma: Model;
-	mappings: [Model, Index][];
+	sigma: Environment;
+	mappings: [Environment, Index][];
 
 	constructor(options: any) {
 		super(options);
@@ -20,7 +21,7 @@ export class MDLAgent extends BayesAgent {
 			this.mappings.push([this.model.modelClass[i], i]);
 		}
 
-		let K = (model: Model) => JSON.stringify(model).length;
+		let K = (model: Environment) => JSON.stringify(model).length;
 
 		this.mappings.sort((m, n) => {
 			let d = K(m[0]) - K(n[0]);
