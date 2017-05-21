@@ -1,3 +1,4 @@
+import { TabularAgent } from './../agents/tabular';
 import { Agent } from '../agents/agent';
 import { Environment } from '../environments/environment';
 import { Model } from '../models/model';
@@ -71,22 +72,17 @@ export class Trace {
 	}
 }
 
-/*
+
 export class TabularTrace extends Trace {
-	constructor(t) {
-		super(t);
-		this.q_map = [];
-		this.jumps = 50;
+	constructor(T: Time) {
+		super(T);
 	}
 
-	logModel(agent) {
-		this.models.push(agent.last_q);
-		if (agent.lifetime % (this.T / this.jumps) == 0) {
-			this.q_map.push(agent.Q.copy());
-		}
+	logModel(agent: TabularAgent) {
+		this.models.push(agent.Q.get(agent.lastObs, agent.lastAction));
 	}
 }
-*/
+
 
 export class BayesTrace extends Trace {
 	infoGain: number[];

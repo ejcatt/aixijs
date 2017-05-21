@@ -33,7 +33,7 @@ export class Plot {
 	protected svg: d3.Selection<any, {}, HTMLElement, any>;
 
 	constructor(trace: Trace,
-		data: number[],
+		data: Vector,
 		id: string,
 		yLabel: string,
 		xLabel = 'Cycles') {
@@ -42,7 +42,7 @@ export class Plot {
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
-		this.data = data;
+		this.data = <number[]>data;
 		this.T = trace.T;
 
 		this.margin = { top: 50, right: 70, bottom: 30, left: 70 };
@@ -64,8 +64,8 @@ export class Plot {
 
 		this.x.domain([0, this.T]);
 		if (data.length > 0) {
-			this.min = d3.min(data)!;
-			this.max = d3.max(data)!;
+			this.min = d3.min(this.data)!;
+			this.max = d3.max(this.data)!;
 		} else {
 			this.min = 0;
 			this.max = 0;

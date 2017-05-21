@@ -11,7 +11,7 @@ import {
 	Index,
 	Probability
 } from '../x/x';
-import { ExplorationPlot } from '../vis/plot';
+import { ExplorationPlot, PlotConstructor } from '../vis/plot';
 import { Model } from '../models/model';
 
 export enum REWARDS {
@@ -58,7 +58,7 @@ export class Gridworld implements Environment {
 	maxReward: Reward;
 	reward: Reward;
 	options: any;
-	plots: object[];
+	plots: PlotConstructor[];
 
 	noop: Action;
 
@@ -263,7 +263,7 @@ export class Gridworld implements Environment {
 		return { x: this.state.x, y: this.state.y, reward: this.reward };
 	}
 
-	makeModel(model: any, parametrization: string) {
+	makeModel(model: any, parametrization: string): Model {
 		if (model == QTable) {
 			return new QTable(100, this.numActions); // TODO: magic no.
 		}

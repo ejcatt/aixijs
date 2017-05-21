@@ -1,4 +1,6 @@
+import { demo } from './demo';
 export class UI {
+	slider: HTMLElement;
 	doc: HTMLDocument = document;
 	params: any;
 
@@ -186,21 +188,27 @@ export class UI {
 			}
 			for (let i = 0; i < div.children.length; i++) {
 				let p = <HTMLElement>div.children[i];
-				// TODO NAMES NAMES NAMES ?!?!
-				let rofl = <HTMLElement>this.getElementById(p.title);
+				// TODO
+				let sel = <HTMLSelectElement>this.getElementById(p.title);
 
 				if (p.title == 'agents') {
-					options.agent.type = options.agent.agents[p.children[1].value];
+					options.agent.type = options.agent.agents[
+						(<HTMLSelectElement>p.children[1]).value];
 					continue;
 				}
 
 				if (p.title == 'discounts') {
-					options.agent.discount = options.agent.discounts[p.children[1].value];
-					let dp = {};
+					options.agent.discount = options.agent.discounts[
+						(<HTMLSelectElement>p.children[1]).value];
+					interface Dict {
+						[x: string]: any;
+					}
+					let dp: Dict = {};
 					for (let i = 0; i < div.children.length; i++) {
 						let p = <HTMLElement>div.children[i];
 						if ((<HTMLElement>p.children[0]).innerText.startsWith('agent.discount')) {
-							dp[p.children[1].title] = p.children[1].value;
+							let v = (<HTMLSelectElement>p.children[1]).value;
+							dp[(<HTMLElement>p.children[1]).title] = v;
 						}
 					}
 
@@ -208,7 +216,7 @@ export class UI {
 					continue;
 				}
 
-				matchOpt(options[opt], p.title, parsenameFloat(rofl.value));
+				matchOpt(options[opt], p.title, parseFloat(sel.value));
 			}
 		}
 	}
@@ -220,7 +228,7 @@ export class UI {
 		this.show('plots');
 		this.hide('run');
 		this.hide('back');
-		this.slider = this.getElementById('slider');
+		this.slider = <HTMLElement>this.getElementById('slider')!;
 	}
 
 	end() {

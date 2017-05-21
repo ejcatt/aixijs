@@ -1,7 +1,10 @@
+import { QTable } from './../x/qtable';
 import { Model } from './../models/model';
-import { Action, Percept, Probability, Reward } from '../x/x';
+import { Action, Percept, Probability, Reward, Config } from '../x/x';
 import { Util } from '../x/util';
 import { PlotConstructor } from '../vis/plot';
+
+export type EnvironmentConstructor = new (config: Config) => Environment;
 
 export interface Environment {
 	visited: number;
@@ -22,7 +25,7 @@ export interface Environment {
 	load(): void;
 	copy(): Environment;
 
-	makeModel(type: string, parametrization: string): Model;
+	makeModel(type: string, parametrization: string): Model | QTable;
 
 	// TODO: probably refactor and resolve Model <--> Environment
 	update(a: Action, e: Percept): void;

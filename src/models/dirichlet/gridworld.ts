@@ -300,6 +300,10 @@ export class DirichletGrid {
 			this.weights[idx] = this.savedWeights[idx];
 		}
 	}
+
+	copy() {
+		return this; // TODO; fix
+	}
 }
 
 class DirichletTile {

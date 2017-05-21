@@ -14,3 +14,5 @@ export type Vector = Array<number> | Float32Array | Float64Array;
 export type BitVector = Array<boolean>;
 export type Tuple = [number, number];
 
+export type Config = any;
+export type Options = any;

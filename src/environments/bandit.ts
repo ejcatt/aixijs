@@ -11,6 +11,8 @@ export class Bandit implements Environment {
 	options: any;
 	numStates: number = 0;
 	numActions: number = 0;
+	minReward: number;
+	maxReward: number;
 	noop: number;
 	reward: number = 0;
 	plots: any;

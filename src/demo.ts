@@ -1,14 +1,40 @@
+import { Gridworld } from './environments/gridworld';
+import { BayesExp } from './agents/bayesexp';
+import { MDLAgent } from './agents/mdl';
+import { ThompsonAgent } from './agents/thompson';
+import { BayesAgent } from './agents/bayes';
+import { SquareKSA, ShannonKSA, KullbackLeiblerKSA } from './agents/ksa';
 import { Plot } from './vis/plot';
 import { Trace } from './x/trace';
 import { Agent } from './agents/agent';
-import { Environment } from './environments/environment';
+import {
+	Environment,
+	EnvironmentConstructor
+} from './environments/environment';
 import { Visualization } from './vis/visualization';
 import { UI } from './ui';
 import { Util } from './x/util';
-import { Time } from './x/x';
+import { Time, Vector, Config, Options } from './x/x';
 
-type Config = any;
-type Options = any;
+interface Log {
+	rewards: Vector;
+	explored: Vector;
+	options: Options;
+	agent: string;
+	cycles: Time;
+	runtime: Time;
+	seed: string;
+	samples?: number;
+	horizon?: number;
+}
+
+interface Result {
+	[x: string]: Log[];
+}
+
+interface Math {
+	seedrandom(seed?: string): void;
+}
 
 class Demo {
 	agent: Agent;
@@ -222,7 +248,9 @@ class Demo {
 				agent: { cycles: 200 },
 			};
 		}
-		let results = {};
+
+		let results: Result;
+		results = {};
 		let runs = params.runs;
 		let frac = params.frac;
 		let seed = params.seed;
@@ -250,14 +278,14 @@ class Demo {
 
 			Math.seedrandom(seed);
 			let logs = [];
-			let env = null;
+			let env: Environment = this.env;
 			this.new(config);
 			for (let i = 0; i < runs; i++) {
 				console.log(`    run ${i + 1} of ${runs}...`);
 				if (i > 0) {
-					env = new env.constructor(env.options);
+					env = new (<EnvironmentConstructor>env.constructor)(env.options);
 					if (env.constructor == Gridworld) {
-						env.isSolvable();
+						(<Gridworld>env).isSolvable(); // TODO: decouple GW
 					}
 
 					this.run(env, false);
@@ -274,17 +302,29 @@ class Demo {
 						exp.push(this.trace.explored[j]);
 					}
 				}
-				let log = {
+
+				let log: Log;
+				log = {
 					rewards: rew,
 					explored: exp,
 					options: Util.deepCopy(this.config),
 					agent: this.config.agent.type.name,
 					cycles: this.trace.iter,
 					runtime: this.trace.runtime,
-					samples: this.agent.samples,
-					horizon: this.agent.horizon,
-					seed: seed,
+					seed: seed
 				};
+
+				// TODO: fix design here
+				if (this.agent.constructor == BayesAgent ||
+					SquareKSA ||
+					ShannonKSA ||
+					KullbackLeiblerKSA ||
+					ThompsonAgent ||
+					MDLAgent ||
+					BayesExp) {
+					log.samples = (<BayesAgent>this.agent).samples;
+					log.horizon = (<BayesAgent>this.agent).horizon;
+				}
 
 				logs.push(log);
 			}
