@@ -1,10 +1,10 @@
 import { Environment } from './environment';
 import { Util } from '../x/util';
-import { Action, Reward, Observation, Percept } from '../x/x';
+import { Action, Reward, Observation, Percept, Index } from '../x/x';
 import { ExplorationPlot } from '../vis/plot';
 import { Model } from '../models/model';
 
-enum REWARDS {
+export enum REWARDS {
 	chocolate = 100,
 	wall = -5,
 	empty = 0,
@@ -20,7 +20,7 @@ const MAPSYMBOLS = {
 	modifier: 'M',
 };
 
-const ACTIONS = [
+export const ACTIONS = [
 	[-1, 0], 	// left
 	[1, 0], 	// right
 	[0, -1], 	// up
@@ -317,7 +317,7 @@ export class Gridworld implements Environment {
 		return new BayesMixture(modelClass, weights);
 	}
 
-	conditionalDistribution(e) {
+	conditionalDistribution(e: Percept) {
 		let p = this.generatePercept();
 		let s = this.state;
 		if (s.constructor == NoiseTile) {
@@ -354,7 +354,7 @@ export class Gridworld implements Environment {
 
 	}
 
-	static proposeRandom(options) {
+	static proposeRandom(options: any) {
 		let opt = Util.deepCopy(options);
 		let N = options.N;
 		let trapProb = options.trapProb || 0;
@@ -402,16 +402,14 @@ export class Gridworld implements Environment {
 
 	}
 
-	static newTile(i, j, info, type) {
-		let tile: Tile = null;
+	static newTile(i: Index, j: Index, theta: number, type: string) {
+		let tile: Tile;
 		if (type == MAPSYMBOLS.empty) {
 			tile = new Tile(i, j);
 		} else if (type == MAPSYMBOLS.wall) {
 			tile = new Wall(i, j);
-		} else if (type == MAPSYMBOLS.chocolate) {
-			tile = new Chocolate(i, j);
 		} else if (type == MAPSYMBOLS.dispenser) {
-			tile = new Dispenser(i, j, info);
+			tile = new Dispenser(i, j, theta);
 		} else if (type == MAPSYMBOLS.trap) {
 			tile = new Trap(i, j);
 		} else if (type == MAPSYMBOLS.modifier) {
@@ -489,6 +487,7 @@ export class Tile {
 	connexions: Tile[];
 	symbol: number = 0;
 	obs: Observation;
+	parent: any;
 
 	dynamics: () => void;
 	reward: () => Reward;
@@ -498,7 +497,6 @@ export class Tile {
 		this.reward = () => REWARDS.empty;
 
 		this.legal = true;
-		this.obs = null; // gets filled out on construction
 		this.connexions = new Array();
 		this.dynamics = () => null;
 	}
@@ -545,7 +543,8 @@ export class NoiseTile extends Tile {
 	numObs: number;
 	constructor(x: number, y: number) {
 		super(x, y);
-		this.numObs = Math.pow(2, 2); // TODO: fix magic number
+		let bits = 2; // TODO: fix magic number
+		this.numObs = 2 ** bits;
 		this.dynamics = function () {
 			this.obs = Util.randi(0, this.numObs);
 		};

@@ -19,9 +19,10 @@ export class ExpectimaxTree {
 	discount: Discount;
 
 	constructor(options: any,
+		model: Model,
 		rewardFunction: (e: Percept, dfr: number) => Reward,
 		discountFunction: (dfr: Time, t: Time) => number) {
-		this.model = options.model;
+		this.model = model;
 		this.horizon = options.horizon;
 		this.ucb = options.ucb;
 		this.minReward = options.minReward;

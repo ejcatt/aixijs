@@ -1,8 +1,13 @@
 import { Agent } from '../agents/agent';
+import { Environment } from '../environments/environment';
 import { Model } from '../models/model';
 import { Action, Observation, Reward, Percept, Time } from './x';
+import { MDLAgent } from './../agents/mdl';
+import { Gridworld } from './../environments/gridworld';
+import { ThompsonAgent } from './../agents/thompson';
+import { BayesAgent } from './../agents/bayes';
+import { BayesExp } from './../agents/bayesexp';
 import { Util } from './util';
-import { Environment } from '../environments/environment';
 import { Plot, AverageRewardPlot, IGPlot } from '../vis/plot';
 
 export class Trace {
@@ -15,7 +20,7 @@ export class Trace {
 	explored: number[];
 	models: any[];
 
-	plots: Plot[] = [AverageRewardPlot];
+	plots: (new (t: Trace) => Plot)[] = [AverageRewardPlot];
 	iter: number;
 	T: Time;
 
@@ -48,8 +53,8 @@ export class Trace {
 		this.averageReward.push(this.totalReward / (this.iter + 1));
 	}
 
-	private logModel(agent: Agent) {
-		this.models.push(agent.getState());
+	protected logModel(agent: Agent) {
+		return;
 	}
 
 	log(agent: Agent, env: Environment, a: Action, e: Percept) {
@@ -91,31 +96,28 @@ export class BayesTrace extends Trace {
 		this.plans = [];
 	}
 
-	logModel(agent: Agent) {
+	protected logModel(agent: BayesAgent) {
 		this.totalInformation += agent.informationGain;
 		this.infoGain.push(this.totalInformation);
-		this.models.push(Util.arrayCopy(agent.model.weights));
+		this.models.push(agent.model.log());
 		this.plans.push(agent.plan);
 	}
 }
 
 export class ThompsonTrace extends BayesTrace {
-	rhos: any[];
-	constructor(T: Time) {
-		super(T);
-		this.rhos = [];
-	}
-
-	logModel(agent: Agent) {
+	rhos: any[] = [];
+	protected logModel(agent: ThompsonAgent) {
 		super.logModel(agent);
-		let goal = (agent).rho.goals[0];
+		let kek = <Gridworld>agent.rho;
+		let goal = (<Gridworld>(agent.rho)).goals[0];
 		this.rhos.push({ x: goal.x, y: goal.y }); // TODO: generalize
 	}
 }
 
-export class MDLTrace extends ThompsonTrace {
+export class MDLTrace extends BayesTrace {
 	mappings: any[];
-	logModel(agent: Agent) {
+	sigmas: any[] = [];
+	protected logModel(agent: MDLAgent) {
 		super.logModel(agent);
 		if (this.iter == 0) {
 			this.mappings = agent.mappings;
@@ -130,7 +132,7 @@ export class DirichletTrace extends BayesTrace {
 		this.params = [];
 	}
 
-	logModel(agent: Agent) {
+	protected logModel(agent: BayesAgent) {
 		super.logModel(agent);
 		let param = [];
 		for (let i = 0; i < agent.model.N; i++) {
@@ -148,7 +150,7 @@ export class BayesExpTrace extends BayesTrace {
 		this.explorationPhases = [];
 	}
 
-	logModel(agent: Agent) {
+	protected logModel(agent: BayesExp) {
 		super.logModel(agent);
 		this.explorationPhases.push(agent.explore);
 	}

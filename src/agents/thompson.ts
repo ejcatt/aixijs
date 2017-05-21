@@ -7,8 +7,9 @@ import { BayesAgent } from './bayes';
 import { Action } from '../x/x';
 import { Util } from '../x/util';
 
-class ThompsonAgent extends BayesAgent {
-	rho: BayesMixture;
+export class ThompsonAgent extends BayesAgent {
+	rho: Model;
+	model: BayesMixture;
 	constructor(options: any) {
 		super(options);
 		this.sample();
@@ -20,7 +21,10 @@ class ThompsonAgent extends BayesAgent {
 		this.rho = this.model.modelClass[idx].copy();
 		this.rho.bayesUpdate = function () { };
 
-		this.planner = new ExpectimaxTree(this, this.rho);
+		this.planner = new ExpectimaxTree(this.options,
+			this.rho,
+			this.reward,
+			this.discount);
 	}
 
 	update(a: Action, e: Percept) {

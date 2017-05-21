@@ -1,6 +1,6 @@
 import { Index } from './x';
 
-class Queue {
+export class Queue {
 	arr: Array<any>;
 	N: Index;
 	pos: Index;

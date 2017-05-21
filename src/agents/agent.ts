@@ -7,7 +7,6 @@ export interface Agent {
 	selectAction(e: Percept): Action;
 	update(a: Action, e: Percept): void;
 	reward(e: Percept, dfr: number): Reward;
-	getState(): any;
 }
 
 export class SimpleAgent {

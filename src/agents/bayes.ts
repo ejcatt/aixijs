@@ -40,11 +40,13 @@ export class BayesAgent extends SimpleAgent {
 		this.maxReward = options.maxReward;
 		this.minReward = options.minReward;
 
-		// TODO assert options OK
 		this.informationGain = 0;
 		this.tracer = options.tracer || BayesTrace;
 		this.model = options.model;
-		this.planner = new ExpectimaxTree(options, this.reward, this.discount);
+		this.planner = new ExpectimaxTree(options,
+			this.model,
+			this.reward,
+			this.discount);
 		this.lastAction = 0;
 	}
 

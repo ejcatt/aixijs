@@ -1,9 +1,9 @@
 import { Util } from './util';
-import { Index, Vector } from './x';
+import { Index, Vector, Probability } from './x';
 
 export interface Distribution {
 	sample(): any;
-	prob(x: any): number;
+	prob(x: any): Probability;
 }
 
 export class Uniform {
@@ -19,7 +19,7 @@ export class Uniform {
 		return Math.random() * (this.b - this.a) + this.a;
 	}
 
-	prob(x: number) {
+	prob(x: number): Probability {
 		if (x >= this.a && x <= this.b) {
 			return 1 / (this.b - this.a);
 		} else {
@@ -40,7 +40,7 @@ export class Bernoulli {
 		return Math.random() < this.p;
 	}
 
-	prob(x: number) {
+	prob(x: number): Probability {
 		if (x == 1) {
 			return this.p;
 		} else if (x == 0) {
@@ -66,7 +66,7 @@ export class Normal {
 		return this.mu + r * Math.cos(theta);
 	}
 
-	prob(x: number): number {
+	prob(x: number): Probability {
 		return 1 / (Math.sqrt(2 * this.sigma ** 2 * Math.PI)) *
 			Math.E ** (-1 * (x - this.mu) ** 2 / (2 * this.sigma ** 2));
 	}
@@ -92,7 +92,7 @@ export class Beta {
 		this.beta = beta;
 	}
 
-	prob(p: number) {
+	prob(p: number): Probability {
 		Util.assert(p <= 1 && p >= 0);
 		let f = math.factorial;
 		let beta = <number>f(this.alpha) *
@@ -116,16 +116,16 @@ export class Beta {
 }
 
 export class Dirichlet {
-	alphas: Float32Array;
+	alphas: Vector;
 	K: Index;
 	alphaSum: number;
-	constructor(alphas: Float32Array) {
+	constructor(alphas: Vector) {
 		this.alphas = alphas;
 		this.K = alphas.length;
 		this.alphaSum = Util.sum(alphas);
 	}
 
-	prob(pvec: Vector) {
+	prob(pvec: Vector): Probability {
 		Util.assert(pvec.length == this.K);
 		Util.assert(Util.sum(pvec) == 1);
 		let beta = 1;
@@ -146,7 +146,7 @@ export class Dirichlet {
 		return this.mean(idx);
 	}
 
-	mean(idx: Index) {
+	mean(idx: Index): Probability {
 		if (!this.alphaSum) {
 			return 1 / this.K; // admit Haldane prior
 		}
@@ -154,7 +154,7 @@ export class Dirichlet {
 		return this.alphas[idx] / this.alphaSum;
 	}
 
-	means() {
+	means(): Vector {
 		let means = [];
 		for (let i = 0; i < this.K; i++) {
 			means.push(this.mean(i));

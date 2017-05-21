@@ -1,20 +1,20 @@
-import {Model} from "./model"
-import {Util} from "../util/util"
-import {Action, Percept} from "../util/x"
+import { Model } from './model';
+import { Util } from '../x/util';
+import { Action, Percept, Vector } from '../x/x';
 
 export class BayesMixture implements Model {
 	modelClass: Model[];
 	weights: number[];
 	savedWeights: number[];
 	N: number;
-	constructor(modelClass, weights) {
+	constructor(modelClass: Model[], weights: Vector) {
 		this.modelClass = [...modelClass];
 		this.weights = [...weights];
 
 		this.savedWeights = [];
 		this.N = modelClass.length;
 
-		Util.assert(Math.abs(Util.sum(weights) - 1) < 1e-4, 'Prior is not normalised!');
+		Util.assert(Math.abs(Util.sum(weights) - 1) < 1e-6);
 	}
 
 	conditionalDistribution(e: Percept) {
@@ -38,19 +38,19 @@ export class BayesMixture implements Model {
 
 	bayesUpdate(a: Action, e: Percept) {
 		var xi = 0;
-		for (var i = 0, N = this.N; i < N; i++) {
+		for (var i = 0; i < this.N; i++) {
 			if (this.weights[i] == 0) {
 				continue;
 			}
 
-			this.weights[i] = this.weights[i] * this.modelClass[i].conditionalDistribution(e);
+			this.weights[i] *= this.modelClass[i].conditionalDistribution(e);
 			xi += this.weights[i];
 		}
 
 		Util.assert(xi != 0, `Cromwell violation: xi(${e.obs},${e.rew}) = 0`);
 
-		for (var i = 0, N = this.N; i < N; i++) {
-			this.weights[i] /= xi;
+		for (var idx = 0; idx < this.N; idx++) {
+			this.weights[idx] /= xi;
 		}
 	}
 
@@ -70,7 +70,7 @@ export class BayesMixture implements Model {
 	}
 
 	entropy(): number {
-		return Util.entropy(this.weights)
+		return Util.entropy(this.weights);
 	}
 
 	save(): void {
@@ -87,7 +87,15 @@ export class BayesMixture implements Model {
 		}
 	}
 
+	copy(): BayesMixture {
+		return new BayesMixture(this.modelClass, this.weights);
+	}
+
 	infoGain(): number {
-		return Util.entropy(this.savedWeights) - Util.entropy(this.weights)
+		return Util.entropy(this.savedWeights) - Util.entropy(this.weights);
+	}
+
+	log(): Vector {
+		return [...this.weights];
 	}
 }

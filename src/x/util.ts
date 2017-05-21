@@ -103,11 +103,12 @@ export namespace Util {
 		}
 	}
 
-	export function softMax(v: Vector, j: number) {
+	export function softMax(vec: Vector, j: number) {
 		let s = 0;
-		v.forEach(x => {
-			s += Math.pow(Math.E, x);
-		});
+		for (var v of vec) {
+			s += Math.E ** v;
+		}
+
 		return Math.pow(Math.E, j) / s;
 	}
 
