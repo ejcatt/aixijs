@@ -19,6 +19,10 @@ export class Plot {
 	private min: number;
 	private max: number;
 
+
+	private rofl: [number, number][];
+	private cycles: number[];
+
 	private T: Time;
 
 	private xAxis: d3.Axis<any>;
@@ -33,7 +37,7 @@ export class Plot {
 	protected svg: d3.Selection<any, {}, HTMLElement, any>;
 
 	constructor(trace: Trace,
-		data: Vector,
+		data: number[],
 		id: string,
 		yLabel: string,
 		xLabel = 'Cycles') {
@@ -42,12 +46,16 @@ export class Plot {
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
-		this.data = <number[]>data;
+		this.key = 'averageReward';
 		this.T = trace.T;
+		this.cycles = trace.cycles;
 
 		this.margin = { top: 50, right: 70, bottom: 30, left: 70 };
 		this.width = 500 - this.margin.left - this.margin.right;
 		this.height = 270 - this.margin.top - this.margin.bottom;
+		this.data = data;
+
+		this.rofl = Util.zip(this.cycles, data);
 
 		d3.select('#' + id).remove();
 
@@ -64,8 +72,8 @@ export class Plot {
 
 		this.x.domain([0, this.T]);
 		if (data.length > 0) {
-			this.min = d3.min(this.data)!;
-			this.max = d3.max(this.data)!;
+			this.min = d3.min(data)!;
+			this.max = d3.max(data)!;
 		} else {
 			this.min = 0;
 			this.max = 0;
@@ -73,8 +81,8 @@ export class Plot {
 
 		this.y.domain([this.min, this.max]);
 		this.valueline = d3.line()
-			.x((d, i) => this.x(i + 1))
-			.y(d => this.y(d));
+			.x(d => this.x(d[0]))
+			.y(d => this.y(d[1]));
 
 		this.xAxis = d3.axisBottom(this.x).ticks(5);
 		this.yAxis = d3.axisLeft(this.y).ticks(5);
@@ -91,7 +99,7 @@ export class Plot {
 		this.path = this.svg.append('path')
 			.attr('class', 'line');
 		if (data.length > 0) {
-			this.path.attr('d', this.valueline(data))
+			this.path.attr('d', this.valueline(this.rofl)!)
 				.style('stroke', color.next().value);
 		}
 
@@ -120,28 +128,23 @@ export class Plot {
 	}
 
 	dataUpdate(trace: Trace) {
-		let v = trace[this.key][trace.iter - 1];
+		let t = trace.iter - 1;
+		let v = this.data[trace.iter - 1];
 		if (v > this.max) {
 			this.max = v;
 		} else if (v < this.min) {
 			this.min = v;
 		}
 
+		this.rofl.push([this.cycles[t], this.data[t]]);
 		this.y.domain([this.min, this.max]);
 		this.yAxis.scale(this.y);
 		this.yAxisLabel.call(this.yAxis);
-		this.path.attr('d', this.valueline(this.data));
+		this.path.attr('d', this.valueline(this.rofl)!);
 	}
 
 	update(time: number) {
 		return;
-	}
-
-	static clearAll() {
-		let plots = d3.select('#plots')._groups[0][0];
-		while (plots.children.length > 0) {
-			d3.select('#' + plots.children[0].id).remove();
-		}
 	}
 }
 
@@ -154,7 +157,7 @@ class TooltipPlot extends Plot {
 		yLabel: string,
 		tooltipLabel: string,
 		xLabel = 'Cycles') {
-		super(trace, data, id, yLabel, xLabel);
+		super(trace, <number[]>data, id, yLabel, xLabel);
 		this.label = tooltipLabel;
 		this.tooltip = this.svg.append('g').style('display', 'none');
 

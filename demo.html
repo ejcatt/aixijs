@@ -69,12 +69,11 @@
   <script type="text/javascript" src="src/ui.js"></script>
   <script type="text/javascript" src="src/demo.js"></script>
   -->
-    <script type="text/javascript" src="aixi.js"></script>
+    <script type="text/javascript" src="external/seedrandom-2.4.0.min.js"></script>
     <script type="text/javascript" src="external/mathjs-3.1.4.min.js"></script>
     <script type="text/javascript" src="external/jquery-2.2.3.min.js"></script>
     <script type="text/javascript" src="external/d3-4.2.6.min.js"></script>
     <script type="text/javascript" src="external/marked-0.3.6.min.js"></script>
-    <script type="text/javascript" src="external/seedrandom-2.4.0.min.js"></script>
 
     <script>
         function renderMarkdown() {
@@ -100,7 +99,7 @@
     </script>
 </head>
 
-<body onload="UI.init();renderMarkdown()">
+<body onload="renderMarkdown()">
     <div id="wrap">
         <div class="header">
             <img src="assets/robot.png" alt="Roger the robot :)" style="width: 50px; float:left; margin: 0px 15px 15px 0px" />
@@ -398,6 +397,8 @@ TODO: port write-up here. A complete (and lengthy) write-up of the Dirichlet mod
             </tr>
         </table>
     </div>
+    <script src='aixi.js'></script>
 </body>
+
 
 </html>

@@ -1,5 +1,4 @@
 import { configs, glossary } from './config';
-import { demo } from './demo';
 export class UI {
 	slider: HTMLInputElement;
 	doc: HTMLDocument = document;
@@ -246,49 +245,5 @@ export class UI {
 
 	hide(x: string) {
 		(<HTMLElement>this.getElementById(x)!).style.display = 'none';
-	}
-
-	static init() {
-		let picker = document.getElementById('picker');
-		let i = 0;
-		let row = null;
-		for (let d in configs) {
-			if (i % 5 == 0) {
-				row = document.createElement('div');
-				row.className = 'row';
-				picker!.appendChild(row);
-			}
-
-			let config = configs[d];
-			if (!config.active) {
-				continue;
-			}
-
-			i++;
-
-			let a = document.createElement('a');
-			a.href = '#';
-			a.onclick = _ => demo.new(config);
-			row!.appendChild(a);
-
-			let div = document.createElement('div');
-			div.className = 'col-xs-2 thumbnail';
-			a.appendChild(div);
-
-			let img = document.createElement('img');
-			img.src = `assets/thumbs/${d}.png`;
-			img.alt = '...';
-			div.appendChild(img);
-
-			let caption = document.createElement('div');
-			caption.className = 'caption';
-			let h3 = document.createElement('h3');
-			h3.innerText = config.name;
-			caption.appendChild(h3);
-			let para = document.createElement('p');
-			para.innerText = config.description;
-			caption.appendChild(para);
-			div.appendChild(caption);
-		}
 	}
 }

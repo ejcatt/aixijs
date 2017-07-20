@@ -125,7 +125,7 @@ export const configs: Config = {
 			},
 		},
 	},
-	aixi_ctw: {
+	/*aixi_ctw: {
 		name: 'MC-AIXI-CTW',
 		vis: BayesGridVis,
 		agent: {
@@ -136,7 +136,7 @@ export const configs: Config = {
 		env: {
 			type: Gridworld,
 		},
-	},
+	},*/
 	thompson: {
 		active: true,
 		name: 'Thompson Sampling',
@@ -315,6 +315,7 @@ export const configs: Config = {
 			type: Gridworld,
 		},
 	},
+	/**
 	ipd: {
 		active: false,
 		name: `Iterated prisoner's dilemma [no vis]`,
@@ -617,4 +618,5 @@ export const configs: Config = {
 			groups: [0, 1, 1, 1, 1, 1, 2],
 		},
 	},
+	*/
 };

@@ -6,6 +6,24 @@ export namespace Util {
 		return new Float32Array(n);
 	}
 
+	export function range(n: number): number[] {
+		let out = [];
+		for (let i = 0; i < n; i++) {
+			out.push(i);
+		}
+		return out;
+	}
+
+	export function zip(A: any[], B: any[]): [any, any][] {
+		assert(A.length == B.length, 'Mismatched lengths');
+		let N = A.length;
+		let out: [any, any][] = [];
+		for (let i = 0; i < N; i++) {
+			out.push([A[i], B[i]]);
+		}
+		return out;
+	}
+
 	export function randomChoice(arr: Vector): number {
 		return arr[Math.floor(Math.random() * arr.length)];
 	}

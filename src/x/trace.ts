@@ -14,6 +14,7 @@ import { Plot, AverageRewardPlot, IGPlot, PlotConstructor } from '../vis/plot';
 export type TraceConstructor = new (t: Time) => Trace;
 
 export class Trace {
+	[x: string]: any;
 	states: any[];
 	actions: Action[];
 	observations: Observation[];
@@ -22,6 +23,7 @@ export class Trace {
 	totalReward: Reward;
 	explored: number[];
 	models: any[];
+	cycles: number[];
 
 	plots: PlotConstructor[] = [AverageRewardPlot];
 	iter: number;
@@ -39,6 +41,7 @@ export class Trace {
 		this.models = [];
 		this.totalReward = 0;
 		this.explored = [];
+		this.cycles = [];
 		this.T = T;
 		this.iter = 0;
 	}
@@ -69,6 +72,7 @@ export class Trace {
 		this.logAction(a);
 		this.logPercept(e);
 		this.iter++;
+		this.cycles.push(this.iter);
 	}
 }
 

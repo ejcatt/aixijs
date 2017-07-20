@@ -1,3 +1,4 @@
+import { configs } from './config';
 import { Gridworld } from './environments/gridworld';
 import { BayesExp } from './agents/bayesexp';
 import { MDLAgent } from './agents/mdl';
@@ -15,7 +16,8 @@ import { Visualization } from './vis/visualization';
 import { UI } from './ui';
 import { Util } from './x/util';
 import { Time, Vector, Config, Options } from './x/x';
-import * as seedrandom from 'seedrandom';
+// import * as seedrandom from 'seedrandom';
+import * as d3 from 'd3';
 
 interface Log {
 	rewards: Vector;
@@ -33,8 +35,53 @@ interface Result {
 	[x: string]: Log[];
 }
 
-interface Math {
-	seedrandom(seed?: string): void;
+// interface Math {
+// 	seedrandom(seed?: string): void;
+// }
+
+
+function initDemo() {
+	let picker = document.getElementById('picker');
+	let i = 0;
+	let row = null;
+	for (let d in configs) {
+		if (i % 5 == 0) {
+			row = document.createElement('div');
+			row.className = 'row';
+			picker!.appendChild(row);
+		}
+
+		let config = configs[d];
+		if (!config.active) {
+			continue;
+		}
+
+		i++;
+
+		let a = document.createElement('a');
+		a.href = '#';
+		a.onclick = _ => demo.new(config);
+		row!.appendChild(a);
+
+		let div = document.createElement('div');
+		div.className = 'col-xs-2 thumbnail';
+		a.appendChild(div);
+
+		let img = document.createElement('img');
+		img.src = `assets/thumbs/${d}.png`;
+		img.alt = '...';
+		div.appendChild(img);
+
+		let caption = document.createElement('div');
+		caption.className = 'caption';
+		let h3 = document.createElement('h3');
+		h3.innerText = config.name;
+		caption.appendChild(h3);
+		let para = document.createElement('p');
+		para.innerText = config.description;
+		caption.appendChild(para);
+		div.appendChild(caption);
+	}
 }
 
 class Demo {
@@ -134,9 +181,12 @@ class Demo {
 		}
 
 		this.trace = new this.agent.tracer(options.agent.cycles);
+
+		for (let p of this.plots) {
+			d3.select('#' + p.id).remove();
+		}
 		this.plots = [];
 
-		Plot.clearAll();
 		for (let P of this.trace.plots) {
 			this.plots.push(new P(this.trace));
 		}
@@ -277,7 +327,7 @@ class Demo {
 					` on ${config.env.type.name}.`);
 			}
 
-			seedrandom(seed);
+			// seedrandom(seed);
 			let logs = [];
 			let env: Environment = this.env;
 			this.new(config);
@@ -356,4 +406,5 @@ class Demo {
 	}
 }
 
-export const demo = new Demo();
+const demo = new Demo();
+initDemo();
