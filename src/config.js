@@ -272,6 +272,18 @@ const configs = {
 			type: Gridworld,
 		},
 	},
+	inq: {
+		active: true,
+		name: 'Inq',
+		description: 'Bayesian agent with expeditions of exploration.',
+		vis: InqVis,
+		agent: {
+			type: Inq,
+		},
+		env: {
+			type: Gridworld,
+		},
+	},
 	ipd: {
 		active: false,
 		name: `Iterated prisoner's dilemma [no vis]`,

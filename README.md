@@ -12,6 +12,7 @@ Agents:
 - Thompson Sampling
 - MDL Agent
 - BayesExp
+- Inq
 - (Tabular) QLearning/SARSA
 
 Environments:
@@ -57,6 +58,8 @@ I've provided a helper function `demo.experiment(...configs,runs)` to make it ea
 ![Experiment](/assets/experiment.png)
 
 After the experiments  download link for `results.json` will appear at the bottom of the DOM. See `src/demo.js:209` for details about the structure of the serialization. There's an iPython notebook in `experiments/analysis.ipynb` that should help get you started in producing plots etc.
+
+For the experiments run in the paper "Strong Asymptotic Optimality in General Environments" use the commands `demo.experiment([configs.inq,configs.bayesexp,configs.thompson],{runs: 50,env:{N:10},agent:{horizon:6,cycles:200}})` and `demo.experiment([configs.inq,configs.bayesexp,configs.thompson],{runs: 50,env:{N:20},agent:{horizon:6,cycles:200}})`
 
 ## License
 GPL.

@@ -342,6 +342,13 @@ class BayesExpVis extends BayesGridVis {
 
 BayesExpVis.exps = ['dispenser', 'mixture', 'bayesexp'];
 
+class InqVis extends BayesGridVis {
+	// TODO flag to show when agent is in explore mode or not
+	// use trace.exploration_phases
+}
+
+Inq.exps = ['dispenser', 'mixture', 'inq'];
+
 class WireHeadVis extends BayesGridVis {
 	updateAgent() {
 		super.updateAgent();

@@ -154,3 +154,15 @@ class BayesExpTrace extends BayesTrace {
 		this.exploration_phases.push(agent.explore);
 	}
 }
+
+class InqTrace extends BayesTrace {
+	constructor(t) {
+		super(t);
+		this.exploration_phases = [];
+	}
+
+	logModel(agent) {
+		super.logModel(agent);
+		this.exploration_phases.push(agent.explore);
+	}
+}
